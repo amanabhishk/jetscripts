@@ -22,6 +22,13 @@ all:
 jetsorter: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
+runSortedJetsDistr: $$@.C $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+runSortedJets: $$@.C $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+
+
 # The main-files are from the pythia8 source, used to test that everything works
 main71 main72: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ $(CXXFLAGS) $(PYTHIA) $(FASTJET) -o $@.exe 

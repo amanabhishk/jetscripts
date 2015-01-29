@@ -13,7 +13,7 @@
 
 #include <math.h>
 // FastJet interface
-#include "Pythia8Plugins/FastJet3.h"
+#include "Pythia8/FastJet3.h"
 
 // ROOT, for histogramming.
 #include "TROOT.h"
@@ -22,7 +22,7 @@
 #include "THStack.h"
 #include "TStyle.h"
 
-// ROOT, for interactive graphics.
+// ROOT, for interactive grdPhics.
 #include "TVirtualPad.h"
 #include "TApplication.h"
 
@@ -75,10 +75,30 @@ int gammaChecker( Event &event, int idx ){
 }
 
 double deltaR( double phi1, double phi2, double eta1, double eta2 ){
-  double dPhi = phi1 - phi2;
+  
   double dEta = eta1 - eta2;
-  return pow( pow( dPhi, 2 ) + pow( dEta, 2 ) , 0.5 );
+  double pi = 3.141592;
+  
+  while ( phi1 < 0 ) phi1 += 2.*pi;
+  while ( phi1 > 2*pi ) phi1 -= 2.*pi;
+  while ( phi2 < 0 ) phi2 += 2.*pi;
+  while ( phi2 > 2*pi ) phi2 -= 2.*pi;
+
+  double dPhi = abs(phi1 - phi2);
+  if(dPhi>pi) dPhi = 2*pi - dPhi;
+
+
+  double dR = pow( pow( dPhi, 2 ) + pow( dEta, 2 ) , 0.5 );
+
+  // cout<<"dEta:"<<dEta<<" dPhi:"<<dPhi<<" dR:"<<dR<<endl;
+  return dR;
 }
+
+
+
+
+
+
 
 void histFiller( vector<TProfile*> &hists, double pt, double eTot, double piPlus,
   double piMinus, double pi0Gamma, double kaPlus, double kaMinus, double kSZero,
