@@ -81,7 +81,8 @@ int main(int argc, char* argv[])
   // Create Pythia instance and set it up to generate hard QCD processes
   // above pTHat = 20 GeV for pp collisions at 14 TeV.
   Pythia pythia;
-  Event& event = pythia.event; //smartass
+  Event& event = pythia.event;
+  // Info& info = pythia.info;
   // Reweighting for event generation
   PtHatReweightUserHook ptGenReweight;
 
@@ -97,6 +98,7 @@ int main(int argc, char* argv[])
   pythia.readString("Next:numberShowInfo = 0");
   pythia.readString("Next:numberShowProcess = 0");
   pythia.readString("Next:numberShowEvent = 0");
+  pythia.readString("PhaseSpace:bias2SelectionPow=4.5");
   // pythia.readString("PartonLevel:ISR=on");
   //pythia.particleData.listAll();
 
@@ -105,9 +107,13 @@ int main(int argc, char* argv[])
   pythia.settings.listChanged();
 
   // Create file on which histogram(s) can be saved.
-  TFile outFile("output1.root", "RECREATE");
+  TFile outFile("output.root", "RECREATE");
   TProfile gluonFrac("g","g",ptBins,ptRange);
+  // TProfile gluonFrac2("g + U","g + U",ptBins,ptRange);
   TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
+  TProfile charmFrac("c","c",ptBins,ptRange);
+  TProfile bottomFrac("b","b",ptBins,ptRange);
+  TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
 
   fastjet::JetDefinition jetDef(fastjet::genkt_algorithm, R, power);
 
@@ -120,12 +126,13 @@ int main(int argc, char* argv[])
   double time_processor = 0; int hours; int minutes; int seconds; 
   
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
-  TH1D* taggedJetsALL =  new TH1D("taggedJetsALL","taggedJetsALL",10, 0.5, 10.5);
 
-  int count, etaBreak;
+  int count; //etaBreak;
+  bool dijetCriteria;
   //////////////////////////END OF SET-UP////////////////////////////
   for (int iEvent = 0; iEvent < nEvent; ++iEvent) 
   {
+    // cout<<
     if(verbose)
     {
       cout<<"-------------------\n";
@@ -150,39 +157,23 @@ int main(int argc, char* argv[])
     
     fjInputs.resize(0);
     vector<int> partonList;
-    // vector<int> inspectIndices; 
-
+  
     for (int i = 0; i != event.size(); ++i) 
     {
       double status = abs( event[i].status() ); 
-      // if ( status == 71 || status == 72 || status == 61 || status == 62 || status == 63 ) inspectIndices.push_back(i);
       if( status == 23 ) partonList.push_back(i);
       if ( event[i].isFinal() && event[i].isVisible() ) 
       {   
         fastjet::PseudoJet particleTemp = event[i];
-        // particleTemp.set_user_index( i );
         fjInputs.push_back( particleTemp );
       }
     }//Event selector loop
   
-    // cout<<"Parton list: ";for(int i=0; i!= partonList.size(); ++i) cout<<partonList[i]<<" ";
-    // cout<<endl;
-
     if (fjInputs.size() == 0) 
     {
       if(verbose) cout << "Error: event with no final state particles" << endl;
       continue;
     }
-
-    // check->Fill(partonList.size());
-    //////////////////////////////////// GET JETS (WITH GHOSTS)////////////////////////////////////////////////
-    
-    // for (unsigned int i = 0; i != inspectIndices.size(); ++i){
-    //   fastjet::PseudoJet particleTemp = event[ inspectIndices[i] ];
-    //   particleTemp *= pow( 10, -18 ); 
-    //   particleTemp.set_user_index( -inspectIndices[i] );
-    //   fjInputs.push_back( particleTemp );
-    // }
     
     vector <fastjet::PseudoJet> unsortedJets, sortedJets;
     fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
@@ -190,54 +181,48 @@ int main(int argc, char* argv[])
     unsortedJets = jetCluster.inclusive_jets( pTMin );
     sortedJets = sorted_by_pt(unsortedJets);
 
-    vector <int> jetFlavor(sortedJets.size(),0);
-
-    // cout<<"jetFlavor:(unitialised) ";for(int i=0; i!= jetFlavor.size(); ++i) cout<<jetFlavor[i]<<" ";
-    // cout<<endl;
+    if(sortedJets.size()<2) dijetCriteria = false;
+    else if(sortedJets.size()>2)
+    {
+     dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.15*abs(sortedJets[0].pt()-sortedJets[1].pt())>sortedJets[2].pt();
+    }
+    else
+    {
+     dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
+    }
     
+    if(!dijetCriteria) continue;
+
+    vector <int> jetFlavor(sortedJets.size(),0);
 
     cout << std::setprecision(10);
     if(verbose)
     {  
       cout<<"parton1: "<<event[partonList[0]].eta()<<" "<<event[partonList[0]].phi()<</*" "<<event[partonList[0]].eT()<<*/endl;
-      // cout<<"********************\n";     
       cout<<"parton2: "<<event[partonList[1]].eta()<<" "<<event[partonList[1]].phi()<</*" "<<event[partonList[1]].eT()<<*/endl;
-      // cout<<"********************\n";  
-      cout<<endl;
     }
 
     count = 0;
-    etaBreak = 0;
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
-    {
-      if (fabs(sortedJets[i].pseudorapidity()) > etaMax) 
+    {      
+      if(sortedJets[i].eta()>etaMax)
       {
-        if (verbose)cout<<"jet#"<<i+1<<":  etaMax condition violated.\n";
-        etaBreak++;
+        if(verbose) cout<< "etaMax condition violated.\n";
         continue;
       }
-      
+
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
       if ( jetParts.size() == 1 ) 
       {
         if(verbose) cout<<"Trivial jet found.\n";
         continue;
       }
-      
-      
-   
-
+ 
       if(verbose) cout<<"jet#"<<i+1<<":  "<<sortedJets[i].eta()<<" "<<sortedJets[i].phi()<</*" "<<sortedJets[i].Et()<<*/endl;
       
       
-      // cout<<"deltaR:  ";
       for(unsigned int k = 0; k != partonList.size(); ++k)  
       {
-        // double dR = deltaR( sortedJets[i].eta(), sortedJets[i].phi(),event[partonList[k]].eta(),event[partonList[k]].phi());
-        // cout<<"********************\n";
-        // cout<<event[partonList[k]].eta()<<" "<<event[partonList[k]].phi()<<endl;
-        // cout<<"********************\n";
-
 
         double dR = deltaR( event[partonList[k]].phi(), sortedJets[i].phi(),event[partonList[k]].eta(),sortedJets[i].eta());
         // cout<<dR<<" ";
@@ -251,15 +236,10 @@ int main(int argc, char* argv[])
         }
       }//tag tagging loop
       if(verbose) cout<<endl;
-      // cout<<count<<endl;
       
     }//Loop over each jet
-    if(sortedJets.size()-etaBreak>1) taggedJets->Fill(count);
-    else 
-    {
-      if(verbose) cout<<"Did not fill the histogram.\n";
-      taggedJetsALL->Fill(count);
-    }
+    
+    taggedJets->Fill(count);
 
     if(verbose)
     {
@@ -267,40 +247,68 @@ int main(int argc, char* argv[])
       cout<<endl;
     }
 
+    //fill histograms
     for(int k = 0; k != sortedJets.size(); ++k)
     {
-      gluonFrac.Fill(sortedJets[k].pt(), jetFlavor[k] == 21? 1:0);
-      lightquarkFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)? 1:0);
-      // lightquarkFrac.Fill(sortedJets[k].pt(), jetFlavor[k] == 2? 1:0);
+      if(jetFlavor[k] == 21)
+      {
+        gluonFrac.Fill(sortedJets[k].pt(), 1);
+        lightquarkFrac.Fill(sortedJets[k].pt(), 0);
+        charmFrac.Fill(sortedJets[k].pt(), 0);
+        bottomFrac.Fill(sortedJets[k].pt(), 0);
+        unmatchedFrac.Fill(sortedJets[k].pt(), 0);        
+      }
+      else if(jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)
+      {
+        gluonFrac.Fill(sortedJets[k].pt(), 0);
+        lightquarkFrac.Fill(sortedJets[k].pt(), 1);
+        charmFrac.Fill(sortedJets[k].pt(), 0);
+        bottomFrac.Fill(sortedJets[k].pt(), 0); 
+        unmatchedFrac.Fill(sortedJets[k].pt(), 0);
+      }
+      else if(jetFlavor[k] == 4)
+      {
+        gluonFrac.Fill(sortedJets[k].pt(), 0);
+        lightquarkFrac.Fill(sortedJets[k].pt(), 0);
+        charmFrac.Fill(sortedJets[k].pt(), 1);
+        bottomFrac.Fill(sortedJets[k].pt(), 0); 
+        unmatchedFrac.Fill(sortedJets[k].pt(), 0);
+      }
+      else if(jetFlavor[k] == 5)
+      {
+        gluonFrac.Fill(sortedJets[k].pt(), 0);
+        lightquarkFrac.Fill(sortedJets[k].pt(), 0);
+        charmFrac.Fill(sortedJets[k].pt(), 0);
+        bottomFrac.Fill(sortedJets[k].pt(), 1); 
+        unmatchedFrac.Fill(sortedJets[k].pt(), 0);
+      }
+      else
+      {
+        gluonFrac.Fill(sortedJets[k].pt(), 1);
+        lightquarkFrac.Fill(sortedJets[k].pt(), 0);
+        charmFrac.Fill(sortedJets[k].pt(), 0);
+        bottomFrac.Fill(sortedJets[k].pt(), 0);
+        unmatchedFrac.Fill(sortedJets[k].pt(), 1); 
+      }
     }
   }//Event loop
   
-  TH1D *lqF = lightquarkFrac.ProjectionX("fraction of light quarks","");
-  // TCanvas *canv1 = new TCanvas("fraction of light quark","fraction of light quark",600,600);
-  // canv1->cd();
-  // setTDRStyle();
-  // canv1->UseCurrentStyle();
-  // canv1->SetLogx();
-  // lqF->GetXaxis()->SetNoExponent();
-  // lqF->GetXaxis()->SetMoreLogLabels();
-  // lqF->Draw();
-  // gPad->WaitPrimitive();
+  TH1D *lqF = lightquarkFrac.ProjectionX("light quarks");
   lqF->Write();
 
-  TH1D *gF = gluonFrac.ProjectionX("fraction of gluons","");
-  // TCanvas *canv2 = new TCanvas("fraction of gluons","fraction of gluons",600,600);
-  // canv2->cd();
-  // setTDRStyle();
-  // canv2->UseCurrentStyle();
-  // canv2->SetLogx();
-  // gF->GetXaxis()->SetNoExponent();
-  // gF->GetXaxis()->SetMoreLogLabels();
-  // gF->Draw();
-  // gPad->WaitPrimitive();
+  TH1D *gF = gluonFrac.ProjectionX("gluons and unmatched");
   gF->Write();
 
+  TH1D *cF = charmFrac.ProjectionX("charm");
+  cF->Write();
+
+  TH1D *bF = bottomFrac.ProjectionX("bottom");
+  bF->Write();
+
+  TH1D *uF = unmatchedFrac.ProjectionX("unmatched");
+  uF->Write();
+
   taggedJets->Write();
-  taggedJetsALL->Write();
 
   return 0;
 }//Done

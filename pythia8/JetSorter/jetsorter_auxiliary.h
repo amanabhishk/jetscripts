@@ -74,9 +74,7 @@ int gammaChecker( Event &event, int idx ){
   return 0;
 }
 
-double deltaR( double phi1, double phi2, double eta1, double eta2 ){
-  
-  double dEta = eta1 - eta2;
+double deltaPhi(double phi1, double phi2){
   double pi = 3.141592;
   
   while ( phi1 < 0 ) phi1 += 2.*pi;
@@ -86,7 +84,14 @@ double deltaR( double phi1, double phi2, double eta1, double eta2 ){
 
   double dPhi = abs(phi1 - phi2);
   if(dPhi>pi) dPhi = 2*pi - dPhi;
+  return dPhi;
+}
 
+double deltaR( double phi1, double phi2, double eta1, double eta2 ){
+  
+  double dEta = eta1 - eta2;
+  
+  double dPhi = deltaPhi(phi1,phi2);
 
   double dR = pow( pow( dPhi, 2 ) + pow( dEta, 2 ) , 0.5 );
 
