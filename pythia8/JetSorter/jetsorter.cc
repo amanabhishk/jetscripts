@@ -46,8 +46,6 @@ int main(int argc, char* argv[])
   bool verbose = false;
   // Create the ROOT application environment.
   TApplication theApp("event_generation", &argc, argv);
-  // int weightedPt = 1;
-
 
   // Settings
   int  nEvent = 100;
@@ -62,22 +60,17 @@ int main(int argc, char* argv[])
     507, 548, 592, 638, 686, 737, 790, 846, 905, 967,
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
-  int power     = -1;     // -1 = ant-kT; 0 = C/A; 1 = kT
+  // int power     = -1;     // -1 = ant-kT; 0 = C/A; 1 = kT
   double R      = 0.5;    // Jet size.
   double pTMin  = 10.0;   // Min jet pT
   double etaMax = 1.3;    // Pseudorapidity range
+  // int weightedPt = 1;
 
   // Create Pythia instance and set it up to generate hard QCD processes
   // above pTHat = 20 GeV for pp collisions at 14 TeV.
   Pythia pythia;
   Event& event = pythia.event;
-  // Info& info = pythia.info;
-  // Reweighting for event generation
-  // PtHatReweightUserHook ptGenReweight;
-
-  // if (weightedPt){
-  //   pythia.setUserHooksPtr( &ptGenReweight );
-  // }
+  Info& info = pythia.info;
 
   pythia.readString("HardQCD:all = on");
   pythia.readString("PhaseSpace:pTHatMin = 30.");
@@ -91,6 +84,13 @@ int main(int argc, char* argv[])
   pythia.readString("PhaseSpace:bias2SelectionPow = 4.5");
   // pythia.readString("PartonLevel:ISR=on");
   //pythia.particleData.listAll();
+
+  // PtHatReweightUserHook ptGenReweight;
+
+  // if (weightedPt){
+  //   pythia.setUserHooksPtr( &ptGenReweight );
+  // }
+
 
   pythia.readString("Beams:eCM = 8000.");
   pythia.init();
@@ -107,7 +107,8 @@ int main(int argc, char* argv[])
 
 
 
-  fastjet::JetDefinition jetDef(fastjet::genkt_algorithm, R, power);
+  // fastjet::JetDefinition jetDef(fastjet::genkt_algorithm, R, power);
+  fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
 
   // Fastjet input
   std::vector <fastjet::PseudoJet> fjInputs;
@@ -119,13 +120,17 @@ int main(int argc, char* argv[])
   
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
   TH1D* distribution =  new TH1D("distribution","distribution",ptBins,ptRange);
+  // TH1D *pt_spectrum_0 = new TH1D("pt without weight","pt without weight",ptBins,ptRange);
+  // TH1D *pt_spectrum = new TH1D("pt spectrum","pt spectrum",ptBins,ptRange);
 
   int count; //etaBreak;
   bool dijetCriteria;
+  double weight;// weightSum = 0;
   //////////////////////////END OF SET-UP////////////////////////////
   for (int iEvent = 0; iEvent < nEvent; ++iEvent) 
   {
     // cout<<
+    
     if(verbose)
     {
       cout<<"-------------------\n";
@@ -137,7 +142,7 @@ int main(int argc, char* argv[])
       continue;
     }
 
-    if (iEvent!=0&&iEvent%100==0 && !verbose)
+    if (iEvent!=0&&iEvent%100==0 && verbose)
     {
       time_processor = (std::clock() - start)/(( (double) CLOCKS_PER_SEC ) );
       time_processor = time_processor*( ((double) nEvent)/iEvent-1); 
@@ -200,7 +205,11 @@ int main(int argc, char* argv[])
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
       
-      // distribution->Fill(abs(sortedJets[i].pt()));
+      
+
+      weight = info.weight();
+      // cout<< sortedJets[i].pt()<<"  "<<weight<<endl;
+      // pt_spectrum->Fill(abs(sortedJets[i].pt()));//,weight);
 
       if(abs(sortedJets[i].eta())>etaMax)
       {
@@ -224,7 +233,7 @@ int main(int argc, char* argv[])
         double dR = deltaR( event[partonList[k]].phi(), sortedJets[i].phi(),event[partonList[k]].eta(),sortedJets[i].eta());
         // cout<<dR<<" ";
         // count += 1;
-        if ( dR < 0.5 ) 
+        if ( dR < R ) 
         {
           count += 1;
           assert(jetFlavor[i]==0);     
@@ -245,13 +254,15 @@ int main(int argc, char* argv[])
     }
 
     //fill histograms
-    for(int k = 0; k != sortedJets.size(); ++k)
+    
+    // weightSum += weight;
+    for(int k = 0; k != 2; ++k)
     {
-      gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0);
-      lightquarkFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)? 1:0);
-      charmFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 4)? 1:0);
-      bottomFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 5)? 1:0);
-      unmatchedFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 0)? 1:0);//NOTE: there might be an exception?
+      gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0, weight);
+      lightquarkFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)? 1:0, weight);
+      charmFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 4)? 1:0, weight);
+      bottomFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 5)? 1:0, weight);
+      unmatchedFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 0)? 1:0, weight);
     }
   }//Event loop
   
@@ -271,7 +282,8 @@ int main(int argc, char* argv[])
   uF->Write();
 
   taggedJets->Write();
-  distribution->Write();
+  // distribution->Write();
+  // pt_spectrum->Write();
 
   return 0;
 }//Done
