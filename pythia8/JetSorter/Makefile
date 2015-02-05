@@ -22,6 +22,10 @@ all:
 jetsorter: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
+eventTTree: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+
 runSortedJetsDistr: $$@.C $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 runSortedJets: $$@.C $(PYTHIALIB)
