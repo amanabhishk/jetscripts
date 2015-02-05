@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void plot(bool merge = false)
+void plot()
 {
 	// if(merge) cout<< "works!\n";
 	TDirectory *curdir = gDirectory;
@@ -18,6 +18,7 @@ void plot(bool merge = false)
 	TH1D *unmatched = (TH1D*)fin->Get("unmatched");
 	assert(unmatched);
 	unmatched->UseCurrentStyle();
+	// unmatched->
 
 	setTDRStyle();
 	TH1D *gluons = (TH1D*)fin->Get("gluons");
@@ -36,62 +37,61 @@ void plot(bool merge = false)
 	assert(bottom);
 	bottom->UseCurrentStyle();
 	
-
-	// TH1D *h = new TH1D("h","");
-	if(merge) gluons->Add(unmatched);
 	
 	TH1D *h = new TH1D("h",";p_{T} (GeV);Fraction",1000,20,2000);
-	// h->SetMinimum(0);
- //    h->SetMaximum(1.2);
-    //unmatched->GetXaxis()->SetMoreLogLabels();
 
-	// unmatched->Draw();
+	tdrDraw(unmatched,"",kOpenCircle,kGray+2,kSolid,-1,1001,kGray);
+	tdrDraw(gluons,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
+	tdrDraw(light_quarks,"",kFullCircle,kGreen-1,kSolid,-1,1001,kYellow-9);
+	tdrDraw(charm,"",kFullCircle,kGreen-1,kSolid,-1,1001,kGreen-9);
+	tdrDraw(bottom,"",kFullCircle,kRed-2,kSolid,-1,1001,kRed-9);
 	
-	// // curdir->cd();
-	// // tdrDraw(h,"");
-
-	tdrDraw(unmatched,"",kOpenCircle,kOrange+7,kSolid,-1,1001,kOrange-3);
-	tdrDraw(gluons,"",kFullCircle,kBlue+2,kSolid,-1,1001,kBlue-9);
-	tdrDraw(light_quarks,"",kFullCircle,kGreen-1,kSolid,-1,1001,kGreen-8);
-	tdrDraw(charm,"",kFullCircle,kYellow-2,kSolid,-1,1001,kYellow-9);
-	tdrDraw(bottom,"",kFullCircle,kMagenta-1,kSolid,-1,1001,kMagenta-9);
-	// // TLegend *leg = new TLegend(0.25,0.25,0.55,0.30);
-	// leg->AddEntry(bottom,"test","w");
-	// leg->SetHeader("The Legend Title");
+	// gluons->ResetAttMarker();
+	// gluons->SetMarkerStyle(20);
 
 	THStack *hs  = new THStack("hs","test stacked histograms");
-    
-    // hs->GetXaxis()->SetNoExponent();
-	
 
 	TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
-	 // TCanvas *c1 = new TCanvas("c1","multipads",900,700);
-	// c1->Divide(1,0,0.2,0.2);
-	
-	// c1->cd(1);
-	// gluons->Draw();
+
 	hs->Add(bottom);
 	hs->Add(charm);
 	hs->Add(light_quarks);
 	hs->Add(gluons);
-	if(!merge) hs->Add(unmatched);
-
-	// leg->Draw();
-    // unmatched->GetXaxis()->SetLogx(1);
-    //unmatched->GetYaxis()->SetMoreLogLabels();
-    // hs->GetYaxis()->SetNoExponent();
-
-	// hs->Add(unmatched);
-	// leg->Draw();
-	
-	
-	// TCanvas c2("c2","stacked hists",10,10,700,900);
+	hs->Add(unmatched);
 
 	hs->Draw();
+
+	hs->GetXaxis()->SetNoExponent();
+	// hs->GetXaxis()->SetNoExponent(kTRUE);
+	hs->GetXaxis()->SetRange(9,47);
+	hs->GetXaxis()->SetNdivisions(5,kTRUE);
+	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
+	hs->GetYaxis()->SetTitle("Flavor fraction");
+	// hs->SetLogx();
 	// tdrDraw(gluons,"");
 
+	TLegend *leg = new TLegend(0.175,0.50,0.5,0.78);
+
+
+	leg->SetFillStyle(kNone);
+	leg->SetBorderSize(0);
+ 	leg->SetTextSize(0.045);
+
+	
+	leg->AddEntry(bottom,"Bottom","f");
+	leg->AddEntry(charm,"Charm","f");
+	leg->AddEntry(light_quarks,"Light","f");
+	leg->AddEntry(gluons,"Gluon","f");
+	leg->AddEntry(unmatched,"None","f");
+	
+	
+	
+
+	leg->Draw();
+	
 	gPad->SetLogx();
-	gPad->RedrawAxis();
+	// TPad->GetXAxis()->SetNoExponent();
+	// gPad->RedrawAxis();
 
 	// c2->cd(2);
 	// unmatched->Draw();

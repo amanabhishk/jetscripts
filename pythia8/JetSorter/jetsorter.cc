@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   pythia.settings.listChanged();
 
   // ROOT setup
-  TFile outFile("output.root", "RECREATE");
+  TFile outFile("output_final.root", "RECREATE");
 
   TProfile gluonFrac("g","g",ptBins,ptRange);
   TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
