@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   TTree *tree = new TTree("Events","TTree of pythia events");
   tree->Branch("n", &n, "n/s");
   tree->Branch("weight", &weight, "weight/F");
-  tree->Branch("id", id, "id[n]/s");
+  tree->Branch("id", id, "id[n]/I");
   tree->Branch("pT", pT, "pT[n]/F");
   tree->Branch("eta", eta, "eta[n]/F");
   tree->Branch("phi", phi, "phi[n]/F");
