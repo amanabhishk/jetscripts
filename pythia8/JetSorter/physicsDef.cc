@@ -1,4 +1,4 @@
-// This class sorts pythia8 jets with the fastjet algorithm. See READMEi_ScriptInfo for further details.
+//Takes .root file as input and applies the physics definition for flavor tagging
 
 // Stdlib header file for input and output.
 #include <iostream>
@@ -46,6 +46,8 @@ using namespace Pythia8;
 
 int main(int argc, char* argv[]) 
 {
+  std::clock_t start = std::clock();
+
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
   bool verbose = false;
@@ -67,10 +69,7 @@ int main(int argc, char* argv[])
   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
-
-  // ROOT setup
-
-
+  // Book histograms
   TProfile gluonFrac("g","g",ptBins,ptRange);
   TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
   TProfile charmFrac("c","c",ptBins,ptRange);
@@ -78,15 +77,14 @@ int main(int argc, char* argv[])
   TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
 
-  TFile *f = new TFile("output.root");
+  TFile *f = new TFile("events.root");              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
-  TFile outFile("jets_output.root", "RECREATE");
+  
+  TFile outFile("jets_output.root", "RECREATE");    //output file 
 
+  //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
   cout<<nEvent<<" events found in the ROOT file."<<endl;
-  cout<<"------------------OK1-------------------\n";
-
-  /**************************************END OF SET-UP**************************************/
 
   unsigned short int eventParticleCount;
   int id[size];
@@ -102,10 +100,9 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("phi", phi);
   Events->SetBranchAddress("m", m);
 
-  cout<<"------------------OK-------------------\n";
+  TLorentzVector v;       //for converting to cartesian coordinates
 
-  TLorentzVector v;
-
+  /**************************************END OF SET-UP**************************************/
   for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
   {
     
@@ -117,15 +114,12 @@ int main(int argc, char* argv[])
     //select relevant events and make partonList and fjInputs vectors
     for (unsigned int i = 0; i != eventParticleCount; ++i) 
     {
-      // cout<<id[i]<<" ";
-      // double status = abs( event[i].status() ); 
       if( status[i] == 3 ) partonList.push_back(i);
       if ( status[i] == 1 ) 
       {   
         v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
         fastjet::PseudoJet particleTemp = v;
         fjInputs.push_back( particleTemp );
-        // distribution->Fill(event[i].pT());
       }
     }//Event selector loop
   
@@ -158,28 +152,12 @@ int main(int argc, char* argv[])
     vector <int> jetFlavor(sortedJets.size(),0);
 
     cout << std::setprecision(10);
-    // if(verbose)
-    // {  
-    //   cout<<"parton1: "<<event[partonList[0]].eta()<<" "<<event[partonList[0]].phi()<</*" "<<event[partonList[0]].eT()<<*/endl;
-    //   cout<<"parton2: "<<event[partonList[1]].eta()<<" "<<event[partonList[1]].phi()<</*" "<<event[partonList[1]].eT()<<*/endl;
-    // }
 
     count = 0;
+    
+    //flavor tagging begins
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
-      
-      // if(i == partonList.size()) break;
-
-      // weight = info.weight();
-
-      //check for etaMax
-      // if(abs(sortedJets[i].eta())>etaMax)
-      // {
-      //   if(verbose) cout<< "etaMax condition violated.\n";
-      //   continue;
-      // }
-
-      //check for jets with just one constituent
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
       if ( jetParts.size() == 1 ) 
       {
@@ -243,8 +221,7 @@ int main(int argc, char* argv[])
   uF->Write();
 
   taggedJets->Write();
-  // distribution->Write();
-  // pt_spectrum->Write();
-
+  cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
+  
   return 0;
-}//Done
+}

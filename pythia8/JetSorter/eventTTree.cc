@@ -1,4 +1,4 @@
-// This class sorts pythia8 jets with the fastjet algorithm. See READMEi_ScriptInfo for further details.
+//Generates a TTree with particles of interest in each event, and stores it in a .root file
 
 // Stdlib header file for input and output.
 #include <iostream>
@@ -46,7 +46,8 @@ int main(int argc, char* argv[])
 {
 
   int  nEvent = 100;
-  if (argc > 1){
+  if (argc > 1)
+  {
     nEvent = atoi(argv[1]);
   }
 
@@ -64,19 +65,20 @@ int main(int argc, char* argv[])
   pythia.readString("PhaseSpace:bias2Selection = on");
   pythia.readString("PhaseSpace:bias2SelectionPow = 4.5");
   pythia.readString("Beams:eCM = 8000.");
+  pythia.readString("Next:numberCount = 500");
 
   pythia.init();
   pythia.settings.listChanged();
 
   //ROOT TTree setup  
-  UShort_t size = 2000;
+  TFile outFile("events.root", "RECREATE"); //output file. change the name in physicsDef.cc too
   
-  UShort_t n;
+  UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
+  
+  UShort_t n;               //exact number of particles stored for each event 
   Int_t id[size];
   Float_t weight, pT[size], eta[size], phi[size], m[size];
   UChar_t status[size];
-
-  TFile outFile("output1.root", "RECREATE");
 
   TTree *tree = new TTree("Events","TTree of pythia events");
   tree->Branch("n", &n, "n/s");
@@ -134,7 +136,8 @@ int main(int argc, char* argv[])
     tree->Fill();
   
   }
-
+  cout<<"Done.\n";
+  tree->Print();
   tree->AutoSave("Overwrite"); 
   outFile.Close();
   return 0;
