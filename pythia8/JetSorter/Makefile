@@ -28,6 +28,9 @@ physicsDef: $$@.cc $(PYTHIALIB)
 eventTTree: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
+readtree: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
 
 
 runSortedJetsDistr: $$@.C $(PYTHIALIB)

@@ -38,20 +38,18 @@
 #include "jetsorter_auxiliary.h"
 
 
+#include "TTree.h"
+#include "TLorentzVector.h"
+
+
 using namespace Pythia8;
 
 int main(int argc, char* argv[]) 
 {
-
-  bool verbose = false;
   TApplication theApp("event_generation", &argc, argv);
-
-  // Settings
-  int  nEvent = 100;
-  // 0 for gluon jet, 1 for all quarks, 2 for light quarks, 3 for heavy quarks
-  if (argc > 1){
-    nEvent = atoi(argv[1]);
-  }
+  unsigned int size = 2000;
+  bool verbose = false;
+  
   int ptBins = 48.;
   const double ptRange[]=
     {18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
@@ -64,26 +62,14 @@ int main(int argc, char* argv[])
   double etaMax = 1.3;    // Pseudorapidity range
   int count;              //keeping track of tagged jets;
   bool dijetCriteria;     //selection of good dijet events
-  double weight;          // biased sampling of pT
 
-  // Pythia setup
-  Pythia pythia;
-  Event& event = pythia.event;
-  Info& info = pythia.info;
+  // fastjet setup
+  fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
+  std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
-  pythia.readString("HardQCD:all = on");
-  pythia.readString("PhaseSpace:pTHatMin = 30.");
-  pythia.readString("Next:numberShowInfo = 0");
-  pythia.readString("Next:numberShowProcess = 0");
-  pythia.readString("Next:numberShowEvent = 0");
-  pythia.readString("PhaseSpace:bias2Selection = on");
-  pythia.readString("PhaseSpace:bias2SelectionPow = 4.5");
-  pythia.readString("Beams:eCM = 8000.");
-  pythia.init();
-  pythia.settings.listChanged();
 
   // ROOT setup
-  TFile outFile("output.root", "RECREATE");
+
 
   TProfile gluonFrac("g","g",ptBins,ptRange);
   TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
@@ -91,53 +77,53 @@ int main(int argc, char* argv[])
   TProfile bottomFrac("b","b",ptBins,ptRange);
   TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
-  // TH1D* distribution =  new TH1D("distribution","distribution",ptBins,ptRange);
 
+  TFile *f = new TFile("output.root");
+  TTree *Events = (TTree*)f->Get("Events");
+  TFile outFile("jets_output.root", "RECREATE");
 
-  // fastjet setup
-  fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
-  std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
-
-  std::clock_t start = std::clock();
-  double time_processor = 0; int hours; int minutes; int seconds; 
+  unsigned int nEvent = (unsigned int)Events->GetEntries(); 
+  cout<<nEvent<<" events found in the ROOT file."<<endl;
+  cout<<"------------------OK1-------------------\n";
 
   /**************************************END OF SET-UP**************************************/
-  for (int iEvent = 0; iEvent < nEvent; ++iEvent) 
+
+  unsigned short int eventParticleCount;
+  int id[size];
+  float weight, pT[size], eta[size], phi[size], m[size];
+  unsigned char status[size];
+  
+  Events->SetBranchAddress("n", &eventParticleCount);
+  Events->SetBranchAddress("weight", &weight);
+  Events->SetBranchAddress("id", id);
+  Events->SetBranchAddress("status", status);
+  Events->SetBranchAddress("pT", pT);
+  Events->SetBranchAddress("eta", eta);
+  Events->SetBranchAddress("phi", phi);
+  Events->SetBranchAddress("m", m);
+
+  cout<<"------------------OK-------------------\n";
+
+  TLorentzVector v;
+
+  for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
   {
-
-    if(verbose)
-    {
-      cout<<"-------------------\n";
-      cout<<"Event#"<<iEvent+1<<endl;
-    }
-    if (!pythia.next()) 
-    {
-      if(verbose)cout<<"pythia.next():skip event.";
-      continue;
-    }
-
-    if (iEvent!=0&&iEvent%100==0 && verbose)
-    {
-      time_processor = (std::clock() - start)/(( (double) CLOCKS_PER_SEC ) );
-      time_processor = time_processor*( ((double) nEvent)/iEvent-1); 
-      minutes =  time_processor/60; hours = minutes/60;
-      seconds = time_processor-60*minutes;
-      minutes = minutes - hours*60;
-      cout << iEvent << " events analyzed. Eta : " << hours << "h" <<
-        minutes << "m" << seconds << "s." << endl;
-    }  
     
+    Events->GetEntry(iEvent);
+
     fjInputs.resize(0);
     vector<int> partonList; //pick out status 23 particles
-  
+
     //select relevant events and make partonList and fjInputs vectors
-    for (int i = 0; i != event.size(); ++i) 
+    for (unsigned int i = 0; i != eventParticleCount; ++i) 
     {
-      double status = abs( event[i].status() ); 
-      if( status == 23 ) partonList.push_back(i);
-      if ( event[i].isFinal() && event[i].isVisible() ) 
+      // cout<<id[i]<<" ";
+      // double status = abs( event[i].status() ); 
+      if( status[i] == 3 ) partonList.push_back(i);
+      if ( status[i] == 1 ) 
       {   
-        fastjet::PseudoJet particleTemp = event[i];
+        v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
+        fastjet::PseudoJet particleTemp = v;
         fjInputs.push_back( particleTemp );
         // distribution->Fill(event[i].pT());
       }
@@ -172,11 +158,11 @@ int main(int argc, char* argv[])
     vector <int> jetFlavor(sortedJets.size(),0);
 
     cout << std::setprecision(10);
-    if(verbose)
-    {  
-      cout<<"parton1: "<<event[partonList[0]].eta()<<" "<<event[partonList[0]].phi()<</*" "<<event[partonList[0]].eT()<<*/endl;
-      cout<<"parton2: "<<event[partonList[1]].eta()<<" "<<event[partonList[1]].phi()<</*" "<<event[partonList[1]].eT()<<*/endl;
-    }
+    // if(verbose)
+    // {  
+    //   cout<<"parton1: "<<event[partonList[0]].eta()<<" "<<event[partonList[0]].phi()<</*" "<<event[partonList[0]].eT()<<*/endl;
+    //   cout<<"parton2: "<<event[partonList[1]].eta()<<" "<<event[partonList[1]].phi()<</*" "<<event[partonList[1]].eT()<<*/endl;
+    // }
 
     count = 0;
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
@@ -184,7 +170,7 @@ int main(int argc, char* argv[])
       
       // if(i == partonList.size()) break;
 
-      weight = info.weight();
+      // weight = info.weight();
 
       //check for etaMax
       // if(abs(sortedJets[i].eta())>etaMax)
@@ -207,13 +193,13 @@ int main(int argc, char* argv[])
       for(unsigned int k = 0; k != partonList.size(); ++k)  
       {
 
-        double dR = deltaR( event[partonList[k]].phi(), sortedJets[i].phi(),event[partonList[k]].eta(),sortedJets[i].eta());
+        double dR = deltaR( phi[partonList[k]], sortedJets[i].phi(), eta[partonList[k]],sortedJets[i].eta());
         if ( dR < R ) 
         {
           count += 1;
           // taggedJets-break1);
           assert(jetFlavor[i]==0);     
-          jetFlavor[i] = abs(event[partonList[k]].id());
+          jetFlavor[i] = abs(id[partonList[k]]);
         }
       }//tag tagging loop
       if(verbose) cout<<endl;

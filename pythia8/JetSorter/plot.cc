@@ -11,7 +11,7 @@ void plot()
 	// if(merge) cout<< "works!\n";
 	TDirectory *curdir = gDirectory;
 	
-	TFile *fin = new TFile("output.root","READ");
+	TFile *fin = new TFile("jets_output.root","READ");
 	assert(fin && !fin->IsZombie());
 	curdir->cd();
 	// 
