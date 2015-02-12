@@ -50,7 +50,6 @@ int main(int argc, char* argv[])
 
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
-  bool verbose = false;
   
   int ptBins = 48.;
   const double ptRange[]=
@@ -103,9 +102,15 @@ int main(int argc, char* argv[])
   TLorentzVector v;       //for converting to cartesian coordinates
 
   /**************************************END OF SET-UP**************************************/
+  cout<<"Progress:\n";
   for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
   {
     
+    if(100*iEvent == 25*nEvent) cout<< "25%\n";
+    if(100*iEvent == 50*nEvent) cout<< "50%\n";
+    if(100*iEvent == 75*nEvent) cout<< "75%\n";
+    if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
+
     Events->GetEntry(iEvent);
 
     fjInputs.resize(0);
@@ -123,11 +128,7 @@ int main(int argc, char* argv[])
       }
     }//Event selector loop
   
-    if (fjInputs.size() == 0) 
-    {
-      if(verbose) cout << "Error: event with no final state particles" << endl;
-      continue;
-    }
+    if (fjInputs.size() == 0) continue;
     
     //clustering using fastjet
     vector <fastjet::PseudoJet> unsortedJets, sortedJets;
@@ -159,13 +160,7 @@ int main(int argc, char* argv[])
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
-      if ( jetParts.size() == 1 ) 
-      {
-        if(verbose) cout<<"Trivial jet found.\n";
-        continue;
-      }
- 
-      if(verbose) cout<<"jet#"<<i+1<<":  "<<sortedJets[i].eta()<<" "<<sortedJets[i].phi()<</*" "<<sortedJets[i].Et()<<*/endl;
+      if ( jetParts.size() == 1 ) continue;
       
       //match with status 23 particles and assign flavor to (2) leading jets
       for(unsigned int k = 0; k != partonList.size(); ++k)  
@@ -180,17 +175,9 @@ int main(int argc, char* argv[])
           jetFlavor[i] = abs(id[partonList[k]]);
         }
       }//tag tagging loop
-      if(verbose) cout<<endl;
-      
     }//Loop over leading jets
     
     taggedJets->Fill(count);
-
-    if(verbose)
-    {
-      cout<<"jetFlavor: ";for(int i=0; i!= jetFlavor.size(); ++i) cout<<jetFlavor[i]<<" ";
-      cout<<endl;
-    }
 
     //fill histograms
     for(int k = 0; k != jetFlavor.size(); ++k)
