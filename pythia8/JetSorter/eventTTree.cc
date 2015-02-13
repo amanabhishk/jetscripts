@@ -55,17 +55,7 @@ int main(int argc, char* argv[])
   Pythia pythia;
   Event& event = pythia.event;
   Info& info = pythia.info;
-
-  pythia.readString("HardQCD:all = on");
-  pythia.readString("PhaseSpace:pTHatMin = 30.");
-  pythia.readString("Next:numberShowInfo = 0");
-  pythia.readString("Next:numberShowProcess = 0");
-  pythia.readString("Next:numberShowEvent = 0");
-  pythia.readString("PhaseSpace:bias2Selection = on");
-  pythia.readString("PhaseSpace:bias2SelectionPow = 4.5");
-  pythia.readString("Beams:eCM = 8000.");
-  pythia.readString("Next:numberCount = 500");
-
+  pythia.readFile("pythiaSettings.cmnd");
   pythia.init();
   pythia.settings.listChanged();
 
@@ -138,9 +128,11 @@ int main(int argc, char* argv[])
     tree->Fill();
   
   }
-  cout<<"Done.\n";
+
   tree->Print();
   tree->AutoSave("Overwrite"); 
   outFile.Close();
+  cout<<"Done.\n";
+  cout<<"TTree is saved in "<<outputFilename<<endl;
   return 0;
 }
