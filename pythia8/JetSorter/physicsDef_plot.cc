@@ -74,15 +74,15 @@ int main(int argc, char* argv[])
   TProfile charmFrac("c","c",ptBins,ptRange);
   TProfile bottomFrac("b","b",ptBins,ptRange);
   TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
-  TH1D* quarkJets = new TH1D("qJets","qJets",500,0,1000);
-  TH1D* gluonJets = new TH1D("gJets","gJets",500,0,1000);
+  TH1D* quarkJets = new TH1D("qJets","qJets",30,0,50);
+  TH1D* gluonJets = new TH1D("gJets","gJets",30,0,50);
 
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
 
-  TFile *f = new TFile("events.root");              //input file with events
+  TFile *f = new TFile("eventsL.root");              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile("jets_output.root", "RECREATE");    //output file 
+  TFile outFile("plots.root", "RECREATE");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
@@ -182,16 +182,7 @@ int main(int argc, char* argv[])
           jetFlavor[i] = abs(id[partonList[k]]);
         }
       }//tag tagging loop
-
-      if(sortedJets[i].pt()>30 && sortedJets[i].pt()<40 && sortedJets[i].eta()<1.3) 
-      {
-        if(jetFlavor[i]==21) ++jetCountGluon;
-        if(jetFlavor[i] != 21 && jetFlavor[i] != 0) ++jetCountQuark;
-      }
     }//Loop over leading jets
-    
-    gluonJets.Fill(particleCountVisible, jetCountGluon/double(particleCountVisible));
-    quarkJets.Fill(particleCountVisible, jetCountQuark/double(particleCountVisible));
     taggedJets->Fill(count);
 
     //fill histograms
@@ -199,6 +190,12 @@ int main(int argc, char* argv[])
     {
       if(k == partonList.size()) break;
       if(sortedJets[k].eta() > etaMax) continue;
+      
+      if(sortedJets[k].pt()>30 && sortedJets[k].pt()<40) 
+      {
+        if(jetFlavor[k]==21) gluonJets->Fill(sortedJets[k].constituents().size(), weight);
+        if(jetFlavor[k] != 21 && jetFlavor[k] != 0) quarkJets->Fill(sortedJets[k].constituents().size(),weight);
+      }
       gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0, weight);
       lightquarkFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)? 1:0, weight);
       charmFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 4)? 1:0, weight);
@@ -222,13 +219,19 @@ int main(int argc, char* argv[])
   TH1D *uF = unmatchedFrac.ProjectionX("unmatched","");
   uF->Write();
 
-  TH1D *jQ = quarkJets.ProjectionX("qJet","");
-  jQ->Write();
+  gluonJets->Scale(1/gluonJets->Integral());
+  gluonJets->SetFillColor(kRed+1);
+  gluonJets->SetLineColor(kRed+1);
+  gluonJets->SetFillStyle(3004);
 
-  TH1D *jG = gluonJets.ProjectionX("gJet","");
-  jG->Write();
-
+  quarkJets->Scale(1/quarkJets->Integral());
+  quarkJets->SetFillColor(kBlue+2);
+  quarkJets->SetLineColor(kBlue+2);
+  quarkJets->SetFillStyle(3005);
+  
   taggedJets->Write();
+  gluonJets->Write();
+  quarkJets->Write();
 
   cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
   
