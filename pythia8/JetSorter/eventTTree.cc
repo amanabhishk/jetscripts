@@ -51,7 +51,6 @@ int main(int argc, char* argv[])
     nEvent = atoi(argv[1]);
   }
 
-
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
@@ -70,8 +69,11 @@ int main(int argc, char* argv[])
   pythia.init();
   pythia.settings.listChanged();
 
+  std::stringstream outputFilename("");
+  outputFilename << nEvent <<"events.root";
+
   //ROOT TTree setup  
-  TFile outFile("events.root", "RECREATE"); //output file. change the name in physicsDef.cc too
+  TFile outFile(outputFilename.str().c_str(), "NEW"); //output file. change the name in physicsDef.cc too
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
