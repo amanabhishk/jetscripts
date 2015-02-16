@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   outputFilename << nEvent <<"events.root";
 
   //ROOT TTree setup  
-  TFile outFile(outputFilename.str().c_str(), "NEW"); //output file. change the name in physicsDef.cc too
+  TFile outFile(outputFilename.str().c_str(), "recreate"); //output file. change the name in physicsDef.cc too
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
@@ -71,6 +71,7 @@ int main(int argc, char* argv[])
   Int_t id[size];
   Float_t weight, pT[size], eta[size], phi[size], m[size];
   UChar_t status[size];
+
 
   TTree *tree = new TTree("Events","TTree of pythia events");
   tree->Branch("n", &n, "n/s");
@@ -81,8 +82,11 @@ int main(int argc, char* argv[])
   tree->Branch("eta", eta, "eta[n]/F");
   tree->Branch("phi", phi, "phi[n]/F");
   tree->Branch("m", m, "m[n]/F");
+  
+  Float_t rad;
+  tree->Branch("rad", &rad, rad/F)
  
-  int state, count;
+  int state, count, daughter1, daughter2;
   
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
@@ -97,22 +101,27 @@ int main(int argc, char* argv[])
       assert(count<size);
       state = abs(event[t].status());      
       
-      if(state == 23) 
+      if(event[t].id() < 30 && event[t].id() > 20) 
       {
         ++count;
         status[count] = 3;
       }
       
-      else if(state == 71 || state == 72 || state == 61 || state == 62 || state == 63) 
-      { 
-        ++count;
-        status[count] = 2;
-      }
+      // else if(state == 71 || state == 72 || state == 61 || state == 62 || state == 63) 
+      // { 
+      //   ++count;
+      //   status[count] = 2;
+      // }
 
       else if(event[t].isFinal())
       {
         ++count;
-        status[count] = 1;
+        if((event[event[t].mother1()].id() == 23 || event[event[t].mother2()].id() == 23) && abs(event[t].id()) == 11)
+        {
+          status[count] = 2;
+          cout<<"S.no. #"<<t<<" mother: "<<event[t].mother1()<<","<<event[t].mother2()<<endl;
+        }
+        else status[count] = 1;
       }
 
       else continue;
