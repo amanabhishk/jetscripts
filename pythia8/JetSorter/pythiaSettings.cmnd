@@ -4,14 +4,14 @@
 
 WeakSingleBoson:ffbar2gmZ = on
 23:onMode = off
-23:5:onMode = on
+23:7:onMode = on
 24:onMode = off
 
 
 PhaseSpace:pTHatMin = 30.
 Next:numberShowInfo = 0
 Next:numberShowProcess = 0
-Next:numberShowEvent = 7
+Next:numberShowEvent = 10
 !PhaseSpace:bias2Selection = on
 !PhaseSpace:bias2SelectionPow = 4.5
 Beams:eCM = 8000.

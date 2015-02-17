@@ -39,7 +39,6 @@
 
 #include "TTree.h"
 
-
 using namespace Pythia8;
 
 int main(int argc, char* argv[]) 
@@ -84,28 +83,119 @@ int main(int argc, char* argv[])
   tree->Branch("m", m, "m[n]/F");
   
   Float_t rad;
-  tree->Branch("rad", &rad, rad/F)
+  tree->Branch("rad", &rad, "rad/F");
+  TH1D * fsr = new TH1D("fsr","fsr",10,0,2);
  
-  int state, count, daughter1, daughter2;
+  int state, count, daughter1, daughter2, temp;
+  Float_t num, den;
   
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
     if (!pythia.next()) continue;
     
-    weight = info.weight();
-    count = -1;
-
+    // weight = info.weight();
+    // count = -1;
+    num = 0; den = 0;
+    cout<<endl;
     for(int t=0; t != event.size(); ++t)
     {
-      assert(count<size);
-      state = abs(event[t].status());      
-      
-      if(event[t].id() < 30 && event[t].id() > 20) 
+      if(event[t].id() == 23)
       {
-        ++count;
-        status[count] = 3;
+        daughter1 = event[t].daughter1();
+        daughter2 = event[t].daughter2();
+
+        while(daughter1 == daughter2 && daughter1 != 0)
+        {
+          daughter1 = event[daughter1].daughter1();
+          daughter2 = event[daughter2].daughter2();
+          cout<<daughter1<<" "<<daughter2<<endl;
+        }
+        break;
       }
+    }
+    
+    den = event[daughter1].pT()+event[daughter2].pT();
+
+    temp = daughter2;
+
+    cout<<"daughter1:"<<daughter1<<"\n";
+    // cout<<daughter1<<" "<<daughter2<<endl;
+
+
+    daughter2 = event[daughter1].daughter2(); //dont change the
+    daughter1 = event[daughter1].daughter1(); //order of these ;)
+    
+    cout<<daughter1<<" "<<daughter2<<endl;
+
+
+    while(daughter1 == daughter2 && daughter1 != 0)
+    {
+      daughter1 = event[daughter1].daughter1();
+      daughter2 = event[daughter2].daughter2();
+      cout<<daughter1<<" "<<daughter2<<endl;
+    }
+
+    if(!event[daughter1].isFinal() && daughter1 != 0)cout<<daughter1<<" was not final.\n";
+    while(!event[daughter1].isFinal() && daughter1 != 0) 
+    {
+      cout<< daughter1<< " ";
+      daughter1 = event[daughter1].daughter1();
+    }
+    cout<<"----"<<endl;
+
+    if(!event[daughter2].isFinal() && daughter2 != 0)cout<<daughter2<<" was not final.\n";
+    while(!event[daughter2].isFinal() && daughter2 != 0) 
+    {
+      cout<< daughter2<<" ";
+      daughter2 = event[daughter2].daughter1();
+    }
+    cout<<"----"<<endl;
+
+
+    cout<<"daughter2:\n";
+    daughter1 = event[temp].daughter1();
+    daughter2 = event[temp].daughter2();
+    cout<<daughter1<<" "<<daughter2<<endl;
+    
+    
+    while(daughter1 == daughter2 && daughter1 != 0)
+    {
+      // cout<<daughter1<<" "<<daughter2<<endl;
+      daughter1 = event[daughter1].daughter1();
+      daughter2 = event[daughter2].daughter2();
+      cout<<daughter1<<" "<<daughter2<<endl;
+      
+    }
+    
+    if(!event[daughter1].isFinal() && daughter1 != 0)cout<<daughter1<<" was not final.\n";
+    while(!event[daughter1].isFinal() && daughter1 != 0) 
+    {
+      cout<< daughter1<< " ";
+      daughter1 = event[daughter1].daughter1();
+    }
+    cout<<"----"<<endl;
+
+    if(!event[daughter2].isFinal() && daughter2 != 0) cout<<daughter2<<" was not final.\n";
+    while(!event[daughter2].isFinal() && daughter2 != 0) 
+    {
+      cout<< daughter2<<" ";
+      daughter2 = event[daughter2].daughter1();
+    }
+    cout<<"----"<<endl;
+
+
+
+
+
+
+      // state = abs(event[t].status());      
+      
+      // if(event[t].id() < 30 && event[t].id() > 20) 
+      // {
+      //   ++count;
+      //   status[count] = 3;
+      // }
       
       // else if(state == 71 || state == 72 || state == 61 || state == 62 || state == 63) 
       // { 
@@ -113,28 +203,29 @@ int main(int argc, char* argv[])
       //   status[count] = 2;
       // }
 
-      else if(event[t].isFinal())
-      {
-        ++count;
-        if((event[event[t].mother1()].id() == 23 || event[event[t].mother2()].id() == 23) && abs(event[t].id()) == 11)
-        {
-          status[count] = 2;
-          cout<<"S.no. #"<<t<<" mother: "<<event[t].mother1()<<","<<event[t].mother2()<<endl;
-        }
-        else status[count] = 1;
-      }
+    //   if(event[t].isVisible() && abs(event[t].id()) == 11)
+    //   {
+    //     ++count;
+    //     if(abs(event[event[t].mother1()].id() == 11) || abs(event[event[t].mother2()].id() == 11))
+    //     {
+    //       num + = 
+    //       cout<<"found: "<<t<<endl;
 
-      else continue;
+    //     }
+    //     // else status[count] = 1;
+    //   }
 
-      id[count] = event[t].id();
-      pT[count] = event[t].pT();
-      eta[count] = event[t].eta();
-      phi[count] = event[t].phi();
-      m[count] = event[t].m();
-    }
+    //   else continue;
 
-    n = UShort_t(count+1);
-    tree->Fill();
+    //   id[count] = event[t].id();
+    //   pT[count] = event[t].pT();
+    //   eta[count] = event[t].eta();
+    //   phi[count] = event[t].phi();
+    //   m[count] = event[t].m();
+    // }
+
+    // n = UShort_t(count+1);
+    // tree->Fill();
   
   }
 
