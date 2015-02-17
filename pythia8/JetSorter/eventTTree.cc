@@ -84,155 +84,76 @@ int main(int argc, char* argv[])
   
   Float_t rad;
   tree->Branch("rad", &rad, "rad/F");
-  TH1D * fsr = new TH1D("fsr","fsr",10,0,2);
+  TH1D * fsr = new TH1D("fsr","fsr",150,0,1.5);
  
-  int state, count, daughter1, daughter2, temp;
+  int state, count, daughter1, daughter2, temp,  index;
   Float_t num, den;
-  
+  vector<int> leptonListFinal;
+
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
     if (!pythia.next()) continue;
     
+    leptonListFinal.resize(0);
     // weight = info.weight();
     // count = -1;
     num = 0; den = 0;
-    cout<<endl;
+    // cout<<endl;
+    temp = 0;
     for(int t=0; t != event.size(); ++t)
     {
-      if(event[t].id() == 23)
+      if(abs(event[t].id()) == 13)
       {
-        daughter1 = event[t].daughter1();
-        daughter2 = event[t].daughter2();
-
-        while(daughter1 == daughter2 && daughter1 != 0)
+        if(event[t].isFinal()) 
         {
-          daughter1 = event[daughter1].daughter1();
-          daughter2 = event[daughter2].daughter2();
-          cout<<daughter1<<" "<<daughter2<<endl;
+          // cout<<t<<" ";
+          leptonListFinal.push_back(t);
+          // temp++;
         }
-        break;
       }
     }
-    
+
+    for(unsigned int x = 0; x != leptonListFinal.size(); ++x)
+    {
+      index = leptonListFinal[x];
+      // cout<<index<<": ";
+      while(abs(event[index].id())==13)
+      {
+        index = event[index].mother1();
+        // cout<<index<<" ";
+      }
+      if(event[index].id()==23)
+      {
+        // cout<<"(Z0) ";
+        num += event[leptonListFinal[x]].pT();
+        temp++;
+        if(temp == 1) daughter1 = event[index].daughter1();
+        if(temp == 2) daughter2 = event[index].daughter2();
+
+        while(abs(event[index].id())==23)
+        {
+          index = event[index].mother1();
+          // cout<<index<<" ";
+        }
+      }
+      // else cout<<"Dead end.";
+      // cout<<endl;
+    }
+    assert(temp==2);
     den = event[daughter1].pT()+event[daughter2].pT();
-
-    temp = daughter2;
-
-    cout<<"daughter1:"<<daughter1<<"\n";
-    // cout<<daughter1<<" "<<daughter2<<endl;
-
-
-    daughter2 = event[daughter1].daughter2(); //dont change the
-    daughter1 = event[daughter1].daughter1(); //order of these ;)
-    
-    cout<<daughter1<<" "<<daughter2<<endl;
-
-
-    while(daughter1 == daughter2 && daughter1 != 0)
-    {
-      daughter1 = event[daughter1].daughter1();
-      daughter2 = event[daughter2].daughter2();
-      cout<<daughter1<<" "<<daughter2<<endl;
-    }
-
-    if(!event[daughter1].isFinal() && daughter1 != 0)cout<<daughter1<<" was not final.\n";
-    while(!event[daughter1].isFinal() && daughter1 != 0) 
-    {
-      cout<< daughter1<< " ";
-      daughter1 = event[daughter1].daughter1();
-    }
-    cout<<"----"<<endl;
-
-    if(!event[daughter2].isFinal() && daughter2 != 0)cout<<daughter2<<" was not final.\n";
-    while(!event[daughter2].isFinal() && daughter2 != 0) 
-    {
-      cout<< daughter2<<" ";
-      daughter2 = event[daughter2].daughter1();
-    }
-    cout<<"----"<<endl;
-
-
-    cout<<"daughter2:\n";
-    daughter1 = event[temp].daughter1();
-    daughter2 = event[temp].daughter2();
-    cout<<daughter1<<" "<<daughter2<<endl;
-    
-    
-    while(daughter1 == daughter2 && daughter1 != 0)
-    {
-      // cout<<daughter1<<" "<<daughter2<<endl;
-      daughter1 = event[daughter1].daughter1();
-      daughter2 = event[daughter2].daughter2();
-      cout<<daughter1<<" "<<daughter2<<endl;
-      
-    }
-    
-    if(!event[daughter1].isFinal() && daughter1 != 0)cout<<daughter1<<" was not final.\n";
-    while(!event[daughter1].isFinal() && daughter1 != 0) 
-    {
-      cout<< daughter1<< " ";
-      daughter1 = event[daughter1].daughter1();
-    }
-    cout<<"----"<<endl;
-
-    if(!event[daughter2].isFinal() && daughter2 != 0) cout<<daughter2<<" was not final.\n";
-    while(!event[daughter2].isFinal() && daughter2 != 0) 
-    {
-      cout<< daughter2<<" ";
-      daughter2 = event[daughter2].daughter1();
-    }
-    cout<<"----"<<endl;
-
-
-
-
-
-
-      // state = abs(event[t].status());      
-      
-      // if(event[t].id() < 30 && event[t].id() > 20) 
-      // {
-      //   ++count;
-      //   status[count] = 3;
-      // }
-      
-      // else if(state == 71 || state == 72 || state == 61 || state == 62 || state == 63) 
-      // { 
-      //   ++count;
-      //   status[count] = 2;
-      // }
-
-    //   if(event[t].isVisible() && abs(event[t].id()) == 11)
-    //   {
-    //     ++count;
-    //     if(abs(event[event[t].mother1()].id() == 11) || abs(event[event[t].mother2()].id() == 11))
-    //     {
-    //       num + = 
-    //       cout<<"found: "<<t<<endl;
-
-    //     }
-    //     // else status[count] = 1;
-    //   }
-
-    //   else continue;
-
-    //   id[count] = event[t].id();
-    //   pT[count] = event[t].pT();
-    //   eta[count] = event[t].eta();
-    //   phi[count] = event[t].phi();
-    //   m[count] = event[t].m();
-    // }
-
-    // n = UShort_t(count+1);
-    // tree->Fill();
-  
+    weight = num/den;
+    if(weight>1) cout<<iEvent<<" ";
+    tree->Fill();
+    fsr->Fill(num/den);
   }
 
-  tree->Print();
+  fsr->Write();
+
+  // tree->Print();
   tree->AutoSave("Overwrite"); 
   outFile.Close();
-  cout<<"Done.\n";
-  cout<<"TTree is saved in "<<outputFilename<<endl;
+  // cout<<"Done.\n";
+  // cout<<"TTree is saved in "<<outputFilename<<endl;
   return 0;
 }
