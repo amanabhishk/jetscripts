@@ -2,7 +2,8 @@
 ! Lines not beginning with a letter or digit are comments.
 ! Names are case-insensitive  -  but spellings-sensitive!
 
-WeakSingleBoson:ffbar2gmZ = on
+WeakSingleBoson:ffbar2ffbar(s:gmZ) = on
+!WeakSingleBoson:ffbar2gmZ = on
 23:onMode = off
 23:7:onMode = on
 24:onMode = off
@@ -10,9 +11,9 @@ WeakSingleBoson:ffbar2gmZ = on
 
 PhaseSpace:pTHatMin = 30.
 Next:numberShowInfo = 0
-Next:numberShowProcess = 0
+Next:numberShowProcess = 5
 Next:numberShowEvent = 0
-!PhaseSpace:bias2Selection = on
-!PhaseSpace:bias2SelectionPow = 4.5
+PhaseSpace:bias2Selection = on
+PhaseSpace:bias2SelectionPow = 4.5
 Beams:eCM = 8000.
-Next:numberCount = 500
+Next:numberCount = 100

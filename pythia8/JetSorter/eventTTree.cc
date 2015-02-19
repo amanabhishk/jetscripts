@@ -59,10 +59,10 @@ int main(int argc, char* argv[])
   pythia.settings.listChanged();
 
   std::stringstream outputFilename("");
-  outputFilename << nEvent <<"events.root";
+  outputFilename << nEvent <<"eventsZjet.root";
 
   //ROOT TTree setup  
-  TFile outFile(outputFilename.str().c_str(), "recreate"); //output file. change the name in physicsDef.cc too
+  TFile outFile(outputFilename.str().c_str(), "NEW"); //output file. change the name in physicsDef.cc too
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
@@ -82,12 +82,12 @@ int main(int argc, char* argv[])
   tree->Branch("phi", phi, "phi[n]/F");
   tree->Branch("m", m, "m[n]/F");
   
-  Float_t rad;
-  tree->Branch("rad", &rad, "rad/F");
-  TH1D * fsr = new TH1D("fsr","fsr",150,0,1.5);
+  // Float_t rad;
+  // tree->Branch("rad", &rad, "rad/F");
+  // TH1D * fsr = new TH1D("fsr","fsr",300,0,1.5);
  
-  int state, count, daughter1, daughter2, temp,  index;
-  Float_t num, den;
+  int state, count, temp,  index;
+  // Float_t num, den;
   vector<int> leptonListFinal;
 
   /****************************************END OF SET-UP**************************************************/
@@ -96,62 +96,97 @@ int main(int argc, char* argv[])
     if (!pythia.next()) continue;
     
     leptonListFinal.resize(0);
-    // weight = info.weight();
-    // count = -1;
-    num = 0; den = 0;
-    // cout<<endl;
-    temp = 0;
+    weight = info.weight();
+    count = -1;
+
     for(int t=0; t != event.size(); ++t)
     {
-      if(abs(event[t].id()) == 13)
+      assert(count<size);
+      state = abs(event[t].status());
+
+      if(event[t].isFinal())
       {
-        if(event[t].isFinal()) 
+        if(abs(event[t].id()) == 13) 
         {
-          // cout<<t<<" ";
           leptonListFinal.push_back(t);
-          // temp++;
+        }
+        else
+        {
+          ++count;
+          status[count] = 1;
         }
       }
+
+      else if(state == 21)
+      {
+        ++count;
+        status[count] = 3;
+      }
+
+      else continue;
+
+      id[count] = event[t].id();
+      pT[count] = event[t].pT();
+      eta[count] = event[t].eta();
+      phi[count] = event[t].phi();
+      m[count] = event[t].m();
     }
+
+    temp = 0;
 
     for(unsigned int x = 0; x != leptonListFinal.size(); ++x)
     {
       index = leptonListFinal[x];
-      // cout<<index<<": ";
       while(abs(event[index].id())==13)
       {
         index = event[index].mother1();
-        // cout<<index<<" ";
       }
+      
       if(event[index].id()==23)
       {
-        // cout<<"(Z0) ";
-        num += event[leptonListFinal[x]].pT();
-        temp++;
-        if(temp == 1) daughter1 = event[index].daughter1();
-        if(temp == 2) daughter2 = event[index].daughter2();
+        
+        ++count;
+        status[count] = 2;
+        ++temp;
+        // if(temp == 1) daughter1 = event[index].daughter1(), a = leptonListFinal[x];
+        // if(temp == 2) daughter2 = event[index].daughter2(), b = leptonListFinal[x];
 
-        while(abs(event[index].id())==23)
-        {
-          index = event[index].mother1();
+        // while(abs(event[index].id())==23)
+        // {
+          // index = event[index].mother1();
           // cout<<index<<" ";
-        }
       }
+      else
+      {
+        ++count;
+        status[count] = 1;
+      }
+      
+      id[count] = event[index].id();
+      pT[count] = event[index].pT();
+      eta[count] = event[index].eta();
+      phi[count] = event[index].phi();
+      m[count] = event[index].m();
       // else cout<<"Dead end.";
       // cout<<endl;
     }
     assert(temp==2);
-    den = event[daughter1].pT()+event[daughter2].pT();
-    weight = num/den;
-    if(weight>1) cout<<iEvent<<" ";
+
+    // den = (event[daughter1].p()+event[daughter2].p()).pT();
+    // num = (event[a].p()+event[b].p()).pT();
+    
+    // cout<<num<<" "<<den<<endl;
+    // if(weight>1) cout<<weight<<" ";
+    // weight = num/den;
+    n = UShort_t(count+1);
     tree->Fill();
-    fsr->Fill(num/den);
+    // fsr->Fill(num/den);
   }
 
-  fsr->Write();
+  // fsr->Write();
 
   // tree->Print();
-  tree->AutoSave("Overwrite"); 
+  tree->AutoSave("Overwrite");
   outFile.Close();
   // cout<<"Done.\n";
   // cout<<"TTree is saved in "<<outputFilename<<endl;
