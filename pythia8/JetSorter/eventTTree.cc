@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   outputFilename << nEvent <<"eventsZjet.root";
 
   //ROOT TTree setup  
-  TFile outFile(outputFilename.str().c_str(), "NEW"); //output file. change the name in physicsDef.cc too
+  TFile outFile(outputFilename.str().c_str(), "RECREATE"); //output file. change the name in physicsDef.cc too
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
@@ -94,7 +94,8 @@ int main(int argc, char* argv[])
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
     if (!pythia.next()) continue;
-    
+    // cout<<"----------\n";
+
     leptonListFinal.resize(0);
     weight = info.weight();
     count = -1;
@@ -148,6 +149,10 @@ int main(int argc, char* argv[])
         ++count;
         status[count] = 2;
         ++temp;
+        if(temp==1) index = event[index].daughter1();//, cout<<index<<" ";
+        if(temp==2) index = event[index].daughter2();//, cout<<index<<" ";
+        // assert(temp<2);
+        // cout<<event[index].phi()<<" "<<event[index].eta()<<endl;
         // if(temp == 1) daughter1 = event[index].daughter1(), a = leptonListFinal[x];
         // if(temp == 2) daughter2 = event[index].daughter2(), b = leptonListFinal[x];
 
@@ -156,12 +161,15 @@ int main(int argc, char* argv[])
           // index = event[index].mother1();
           // cout<<index<<" ";
       }
+      
       else
       {
         ++count;
         status[count] = 1;
       }
+      // cout<<endl;
       
+
       id[count] = event[index].id();
       pT[count] = event[index].pT();
       eta[count] = event[index].eta();
@@ -170,6 +178,7 @@ int main(int argc, char* argv[])
       // else cout<<"Dead end.";
       // cout<<endl;
     }
+    // cout<<endl;
     assert(temp==2);
 
     // den = (event[daughter1].p()+event[daughter2].p()).pT();
