@@ -114,6 +114,7 @@ int main(int argc, char* argv[])
         if(identity == 13) 
         {
           leptonListFinal.push_back(t);
+          continue;
         }
         else
         {

@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
   TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",20, 0, 20);
   TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
 
-  TFile *f = new TFile("5000eventsZjet.root");              //input file with events
+  TFile *f = new TFile("10000eventsZjet.root");              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
   TFile outFile("jets_output.root", "RECREATE");    //output file 
@@ -114,15 +114,14 @@ int main(int argc, char* argv[])
     if(100*iEvent == 75*nEvent) cout<< "75%\n";
     if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
 
+    cout << std::setprecision(10);
     Events->GetEntry(iEvent);
 
     fjInputs.resize(0);
-    // vector<int> partonList; //pick out status 23 particles
     vector<int> leptonList;
     bool check = true;
 
     //select relevant events and make partonList and fjInputs vectors
-    // cout<<endl;
     for (unsigned int i = 0; i != eventParticleCount; ++i) 
     {
       if( status[i] == 3 ) 
@@ -130,7 +129,6 @@ int main(int argc, char* argv[])
         parton = i;
         assert(check);
         check = false;
-        // cout<<id[partonList[i]]<<" ";
       }
       else if ( status[i] == 1 ) 
       {   
@@ -139,88 +137,50 @@ int main(int argc, char* argv[])
         fjInputs.push_back( particleTemp );
       }
       else if(status[i] == 2) leptonList.push_back(i);
-      else exit(0);
+      else assert(false);
 
     }//Event selector loop
   
     assert(leptonList.size()==2);
-    // assert(partonList.size()==1);
 
-    // visSize->Fill(partonList.size());
-    if (fjInputs.size() == 0) continue;
+    if (fjInputs.size() == 0) assert(false);
     
-    // cout<<"CHECKPOINT1.\n";
-    //clustering using fastjet
     vector <fastjet::PseudoJet> unsortedJets, sortedJets;
     fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
 
     unsortedJets = jetCluster.inclusive_jets( pTMin );
     sortedJets = sorted_by_pt(unsortedJets);
 
-    // if()
-    // cout<<"CHECKPOINT2.\n";
-    // cout<<deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta())<<endl;
-    // cout<<phi[leptonList[0]]<<phi[leptonList[1]];//<<eta[leptonList[0]]<<sortedJets[0].eta()<<endl;
-    // exit(0);
     jetMultiplicity->Fill(sortedJets.size());
-    if(sortedJets.size()==0) 
-    {
-      continue;
-    }
-    
-    if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < 0.5) continue;
-    if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < 0.5) continue;
+    if(sortedJets.size()==0)  assert(false);
 
-    //selecting good dijet events
-    // if(sortedJets.size()<2) ZjetCriteria = false;
-    // else if(sortedJets.size()>2)
-    // {
-    //  ZjetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
-    // }
-    // else
-    // {
-    //  ZjetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
-    // }
-    
-    // if(!ZjetCriteria) continue;
+    if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
+    if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
 
-    // cout<<"CHECKPOINT3.\n";
     unsigned short int jetFlavor = 0;
 
-    cout << std::setprecision(10);
-
-    // count = 0;
-    
-    //flavor tagging begins
-    // for (unsigned int i = 0; i != sortedJets.size(); ++i) 
-    // {      
     vector<fastjet::PseudoJet> jetParts = sortedJets[0].constituents();
     if ( jetParts.size() == 1 ) continue;
     
-    //match with status 23 particles and assign flavor to (2) leading jets
+    //match with status 23 particles and assign flavor to leading jet only
     double dR = deltaR( phi[parton], sortedJets[0].phi(), eta[parton],sortedJets[0].eta());
+    // cout<<eta[parton]<<" "<<phi[parton]<<endl;
+    // cout<<sortedJets[0].eta()<<" "<<sortedJets[0].phi() <<endl;
+    // cout<<dR<<endl<<endl;
+
     if ( dR < R ) 
-    {
-      // count += 1;
-      // taggedJets-break1);
-      // assert(jetFlavor==0);     
+    {  
       jetFlavor = abs(id[parton]);
     }//tag tagging loop
     
-    // taggedJets->Fill(count);
-
-    //fill histograms
-    // for(int k = 0; k != jetFlavor.size(); ++k)
-    // {
-      // if(k == partonList.size()) break;
     if(sortedJets[0].eta() > etaMax) continue;
     gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
     lightquarkFrac.Fill(sortedJets[0].pt(), (jetFlavor == 1 || jetFlavor == 2 || jetFlavor == 3)? 1:0, weight);
     charmFrac.Fill(sortedJets[0].pt(), (jetFlavor == 4)? 1:0, weight);
     bottomFrac.Fill(sortedJets[0].pt(), (jetFlavor == 5)? 1:0, weight);
     unmatchedFrac.Fill(sortedJets[0].pt(), (jetFlavor == 0)? 1:0, weight);
-    // }
   }//Event loop
+  
   
   TH1D *lqF = lightquarkFrac.ProjectionX("light quarks","");
   lqF->Write();
