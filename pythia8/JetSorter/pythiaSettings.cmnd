@@ -2,7 +2,8 @@
 ! Lines not beginning with a letter or digit are comments.
 ! Names are case-insensitive  -  but spellings-sensitive!
 
-WeakSingleBoson:ffbar2ffbar(s:gmZ) = on
+WeakBosonAndParton:qqbar2gmZg = on
+WeakBosonAndParton:qg2gmZq  = on
 !WeakSingleBoson:ffbar2gmZ = on
 23:onMode = off
 23:7:onMode = on

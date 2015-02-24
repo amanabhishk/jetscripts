@@ -81,18 +81,21 @@ int main(int argc, char* argv[])
   tree->Branch("eta", eta, "eta[n]/F");
   tree->Branch("phi", phi, "phi[n]/F");
   tree->Branch("m", m, "m[n]/F");
+
+  TH1D* type = new TH1D("type","type",26,0,26);
   
   // Float_t rad;
   // tree->Branch("rad", &rad, "rad/F");
   // TH1D * fsr = new TH1D("fsr","fsr",300,0,1.5);
  
-  int state, count, temp,  index;
+  int state, count, temp,  index, identity;
   // Float_t num, den;
   vector<int> leptonListFinal;
 
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
+    // makeTree(event);
     if (!pythia.next()) continue;
     // cout<<"----------\n";
 
@@ -104,10 +107,11 @@ int main(int argc, char* argv[])
     {
       assert(count<size);
       state = abs(event[t].status());
+      identity = abs(event[t].id());
 
       if(event[t].isFinal())
       {
-        if(abs(event[t].id()) == 13) 
+        if(identity == 13) 
         {
           leptonListFinal.push_back(t);
         }
@@ -118,10 +122,11 @@ int main(int argc, char* argv[])
         }
       }
 
-      else if(state == 21)
+      else if(state == 23 && identity != 13)
       {
         ++count;
         status[count] = 3;
+        type->Fill(identity);
       }
 
       else continue;
@@ -195,8 +200,10 @@ int main(int argc, char* argv[])
   // fsr->Write();
 
   // tree->Print();
+  type->Write();
   tree->AutoSave("Overwrite");
   outFile.Close();
+  // makeTree();
   // cout<<"Done.\n";
   // cout<<"TTree is saved in "<<outputFilename<<endl;
   return 0;
