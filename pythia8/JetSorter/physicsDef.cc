@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
   TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",20, 0, 20);
   TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
 
-  TFile *f = new TFile("10000eventsZjet.root");              //input file with events
+  TFile *f = new TFile("20000eventsZjet.root");              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
   TFile outFile("jets_output.root", "RECREATE");    //output file 
@@ -101,7 +101,34 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("phi", phi);
   Events->SetBranchAddress("m", m);
 
-  TLorentzVector v;       //for converting to cartesian coordinates
+  float Jphi, Jeta, JpT, Jm, Je;
+  float Lphi, Leta, LpT, Lm, Le;
+  float Zphi, Zeta, ZpT, Zm, Ze;
+  
+  TTree* jets = new TTree("Jets","Jets");
+  TTree* leptons = new TTree("Leptons","Leptons");
+  TTree* Z = new TTree("Z","Z");
+
+  jets->Branch("pT", &JpT, "pT/F");
+  jets->Branch("eta", &Jeta, "eta/F");
+  jets->Branch("phi", &Jphi, "phi/F");
+  jets->Branch("m", &Jm, "m/F");
+  jets->Branch("e", &Je, "e/F");
+  jets->Branch("weight", &weight, "weight/F");
+
+  leptons->Branch("pT", &LpT, "pT/F");
+  leptons->Branch("eta", &Leta, "eta/F");
+  leptons->Branch("phi", &Lphi, "phi/F");
+  leptons->Branch("m", &Lm, "m/F");
+  leptons->Branch("e", &Le, "e/F");
+  
+  Z->Branch("pT", &ZpT, "pT/F");
+  Z->Branch("eta", &Zeta, "eta/F");
+  Z->Branch("phi", &Zphi, "phi/F");
+  Z->Branch("m", &Zm, "m/F");
+  Z->Branch("e", &Ze, "e/F");
+  
+  TLorentzVector v,v1,v2;       //for converting to cartesian coordinates
   int parton;
 
   /**************************************END OF SET-UP**************************************/
@@ -152,7 +179,41 @@ int main(int argc, char* argv[])
     sortedJets = sorted_by_pt(unsortedJets);
 
     jetMultiplicity->Fill(sortedJets.size());
-    if(sortedJets.size()==0)  assert(false);
+    if(sortedJets.size()==0)  continue;
+
+    for(unsigned int t = 0; t != sortedJets.size(); ++t)
+    {
+      Jphi = sortedJets[t].phi();
+      Jeta = sortedJets[t].eta();
+      JpT = sortedJets[t].pt();
+      Jm = sortedJets[t].m();
+      Je = sortedJets[t].e();
+      jets->Fill();
+    }
+
+    for(unsigned int t = 0; t != 2; ++t)
+    {
+      Lphi = phi[leptonList[t]];
+      Leta = eta[leptonList[t]];
+      LpT = pT[leptonList[t]];
+      Lm = m[leptonList[t]];
+      v.SetPtEtaPhiM(pT[leptonList[t]],eta[leptonList[t]],phi[leptonList[t]],m[leptonList[t]]);
+      Le = v.M();
+
+      leptons->Fill();
+    }
+
+    // for(unsigned int t = 0; t != le)
+    v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
+    v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
+    v = v1+v2;
+    Zphi = v.Phi();
+    Zeta = v.Eta();
+    ZpT = v.Pt();
+    Zm = v.M();
+    Ze = v.E();
+    Z->Fill();
+
 
     if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
     if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
@@ -174,6 +235,9 @@ int main(int argc, char* argv[])
     }//tag tagging loop
     
     if(sortedJets[0].eta() > etaMax) continue;
+    
+
+
     gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
     lightquarkFrac.Fill(sortedJets[0].pt(), (jetFlavor == 1 || jetFlavor == 2 || jetFlavor == 3)? 1:0, weight);
     charmFrac.Fill(sortedJets[0].pt(), (jetFlavor == 4)? 1:0, weight);
@@ -200,6 +264,11 @@ int main(int argc, char* argv[])
   jetMultiplicity->Write();
   taggedJets->Write();
   visSize->Write();
+  jets->AutoSave("Overwrite");
+  leptons->AutoSave("Overwrite");
+  Z->AutoSave("Overwrite");
+  outFile.Close();
+
   cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
   
   return 0;
