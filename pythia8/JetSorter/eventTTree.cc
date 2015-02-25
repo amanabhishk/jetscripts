@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   pythia.settings.listChanged();
 
   std::stringstream outputFilename("");
-  outputFilename << nEvent <<"eventsZjet.root";
+  outputFilename << nEvent <<"eventsZjet_21.root";
 
   //ROOT TTree setup  
   TFile outFile(outputFilename.str().c_str(), "RECREATE"); //output file. change the name in physicsDef.cc too

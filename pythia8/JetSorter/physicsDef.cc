@@ -75,13 +75,13 @@ int main(int argc, char* argv[])
   TProfile bottomFrac("b","b",ptBins,ptRange);
   TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
-  TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",20, 0, 20);
+  TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",100, 0, 20);
   TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
 
-  TFile *f = new TFile("20000eventsZjet.root");              //input file with events
+  TFile *f = new TFile("20000eventsZjet_21.root");              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile("jets_output.root", "RECREATE");    //output file 
+  TFile outFile("jets_output21.root", "RECREATE");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
@@ -101,35 +101,40 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("phi", phi);
   Events->SetBranchAddress("m", m);
 
-  float Jphi, Jeta, JpT, Jm, Je;
-  float Lphi, Leta, LpT, Lm, Le;
+  // unsigned int limit = 20;
+
+  float Jphi[20], Jeta[20], JpT[20], Jm[20], Je[20];
+  float Lphi[2], Leta[2], LpT[2], Lm[2], Le[2];
   float Zphi, Zeta, ZpT, Zm, Ze;
+  unsigned short int jet_multiplicity;
   
-  TTree* jets = new TTree("Jets","Jets");
-  TTree* leptons = new TTree("Leptons","Leptons");
-  TTree* Z = new TTree("Z","Z");
+  TTree* tree = new TTree("tree","tree");
+  // TTree* leptons = new TTree("Leptons","Leptons");
+  // TTree* Z = new TTree("Z","Z");
 
-  jets->Branch("pT", &JpT, "pT/F");
-  jets->Branch("eta", &Jeta, "eta/F");
-  jets->Branch("phi", &Jphi, "phi/F");
-  jets->Branch("m", &Jm, "m/F");
-  jets->Branch("e", &Je, "e/F");
-  jets->Branch("weight", &weight, "weight/F");
-
-  leptons->Branch("pT", &LpT, "pT/F");
-  leptons->Branch("eta", &Leta, "eta/F");
-  leptons->Branch("phi", &Lphi, "phi/F");
-  leptons->Branch("m", &Lm, "m/F");
-  leptons->Branch("e", &Le, "e/F");
+  tree->Branch("jet_multiplicity", &jet_multiplicity, "jet_multiplicity/s");
+  tree->Branch("jet_pT", JpT, "jet_pT[jet_multiplicity]/F");
+  tree->Branch("jet_eta", Jeta, "jet_eta[jet_multiplicity]/F");
+  tree->Branch("jet_phi", Jphi, "jet_phi[jet_multiplicity]/F");
+  tree->Branch("jet_m", Jm, "jet_m[jet_multiplicity]/F");
+  tree->Branch("jet_e", Je, "jet_e[jet_multiplicity]/F");
   
-  Z->Branch("pT", &ZpT, "pT/F");
-  Z->Branch("eta", &Zeta, "eta/F");
-  Z->Branch("phi", &Zphi, "phi/F");
-  Z->Branch("m", &Zm, "m/F");
-  Z->Branch("e", &Ze, "e/F");
+  tree->Branch("weight", &weight, "weight/F");
+
+  tree->Branch("lepton_pT", LpT, "lepton_pT[2]/F");
+  tree->Branch("lepton_eta", Leta, "lepton_eta[2]/F");
+  tree->Branch("lepton_phi", Lphi, "lepton_phi[2]/F");
+  tree->Branch("lepton_m", Lm, "lepton_m[2]/F");
+  tree->Branch("lepton_e", Le, "lepton_e[2]/F");
+  
+  tree->Branch("Z_pT", &ZpT, "Z_pT/F");
+  tree->Branch("Z_eta", &Zeta, "Z_eta/F");
+  tree->Branch("Z_phi", &Zphi, "Z_phi/F");
+  tree->Branch("Z_m", &Zm, "Z_m/F");
+  tree->Branch("Z_e", &Ze, "Z_e/F");
   
   TLorentzVector v,v1,v2;       //for converting to cartesian coordinates
-  int parton;
+  int parton = -1;
 
   /**************************************END OF SET-UP**************************************/
   cout<<"Progress:\n";
@@ -179,28 +184,33 @@ int main(int argc, char* argv[])
     sortedJets = sorted_by_pt(unsortedJets);
 
     jetMultiplicity->Fill(sortedJets.size());
+    jet_multiplicity = sortedJets.size();
     if(sortedJets.size()==0)  continue;
+
+    
+
+    // cout<<"Checkpoint1\n";
 
     for(unsigned int t = 0; t != sortedJets.size(); ++t)
     {
-      Jphi = sortedJets[t].phi();
-      Jeta = sortedJets[t].eta();
-      JpT = sortedJets[t].pt();
-      Jm = sortedJets[t].m();
-      Je = sortedJets[t].e();
-      jets->Fill();
+      Jphi[t] = sortedJets[t].phi();
+      Jeta[t] = sortedJets[t].eta();
+      JpT[t] = sortedJets[t].pt();
+      Jm[t] = sortedJets[t].m();
+      Je[t] = sortedJets[t].e();
+      // jets->Fill();
     }
 
     for(unsigned int t = 0; t != 2; ++t)
     {
-      Lphi = phi[leptonList[t]];
-      Leta = eta[leptonList[t]];
-      LpT = pT[leptonList[t]];
-      Lm = m[leptonList[t]];
+      Lphi[t] = phi[leptonList[t]];
+      Leta[t] = eta[leptonList[t]];
+      LpT[t] = pT[leptonList[t]];
+      Lm[t] = m[leptonList[t]];
+      
       v.SetPtEtaPhiM(pT[leptonList[t]],eta[leptonList[t]],phi[leptonList[t]],m[leptonList[t]]);
-      Le = v.M();
-
-      leptons->Fill();
+      Le[t] = v.E();
+      // leptons->Fill();
     }
 
     // for(unsigned int t = 0; t != le)
@@ -212,9 +222,10 @@ int main(int argc, char* argv[])
     ZpT = v.Pt();
     Zm = v.M();
     Ze = v.E();
-    Z->Fill();
+    // Z->Fill();
+    tree->Fill();
 
-
+    // cout<<"Checkpoint2\n";
     if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
     if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
 
@@ -222,13 +233,15 @@ int main(int argc, char* argv[])
 
     vector<fastjet::PseudoJet> jetParts = sortedJets[0].constituents();
     if ( jetParts.size() == 1 ) continue;
-    
+    if(parton == -1) continue;
+    // assert(parton != -1);
     //match with status 23 particles and assign flavor to leading jet only
     double dR = deltaR( phi[parton], sortedJets[0].phi(), eta[parton],sortedJets[0].eta());
     // cout<<eta[parton]<<" "<<phi[parton]<<endl;
     // cout<<sortedJets[0].eta()<<" "<<sortedJets[0].phi() <<endl;
     // cout<<dR<<endl<<endl;
 
+    // cout<<"Checkpoint3\n";
     if ( dR < R ) 
     {  
       jetFlavor = abs(id[parton]);
@@ -264,9 +277,10 @@ int main(int argc, char* argv[])
   jetMultiplicity->Write();
   taggedJets->Write();
   visSize->Write();
-  jets->AutoSave("Overwrite");
-  leptons->AutoSave("Overwrite");
-  Z->AutoSave("Overwrite");
+  
+  tree->AutoSave("Overwrite");
+  // leptons->AutoSave("Overwrite");
+  // Z->AutoSave("Overwrite");
   outFile.Close();
 
   cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
