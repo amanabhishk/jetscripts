@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   pythia.settings.listChanged();
 
   std::stringstream outputFilename("");
-  outputFilename << nEvent <<"events.root";
+  outputFilename << nEvent <<"events_dijet.root";
 
   //ROOT TTree setup  
   TFile outFile(outputFilename.str().c_str(), "NEW"); //output file. change the name in physicsDef.cc too
@@ -95,20 +95,14 @@ int main(int argc, char* argv[])
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
-      state = abs(event[t].status());      
+      //state = abs(event[t].status());      
       
-      if(state == 23) 
+      if(event[t].status() == -23) 
       {
         ++count;
         status[count] = 3;
       }
       
-      else if(state == 71 || state == 72 || state == 61 || state == 62 || state == 63) 
-      { 
-        ++count;
-        status[count] = 2;
-      }
-
       else if(event[t].isFinal())
       {
         ++count;
