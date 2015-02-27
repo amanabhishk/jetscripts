@@ -152,12 +152,11 @@ int main(int argc, char* argv[])
     m[count] = event[gammaIndex].m();
 
 
-
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
-      state = abs(event[t].status());
-      identity = abs(event[t].id());
+      //state = event[t].status();
+      //identity = abs(event[t].id());
 
       if(event[t].isFinal())
       {
@@ -166,9 +165,10 @@ int main(int argc, char* argv[])
           ++count;
           status[count] = 1;
         }
+        else continue;
       }
 
-      else if(state == 23 && identity != 22)
+      else if(event[t].status() == -23 && abs(event[t].id()) != 22)
       {
         ++count;
         status[count] = 3;
