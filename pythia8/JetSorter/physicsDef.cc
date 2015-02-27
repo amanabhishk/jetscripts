@@ -78,10 +78,10 @@ int main(int argc, char* argv[])
   TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",100, 0, 20);
   TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
 
-  TFile *f = new TFile("20000eventsZjet_21.root");              //input file with events
+  TFile *f = new TFile("50000events_gammaJet.root");              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile("jets_output21.root", "RECREATE");    //output file 
+  TFile outFile("jets_output.root", "RECREATE");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   // unsigned int limit = 20;
 
   float Jphi[20], Jeta[20], JpT[20], Jm[20], Je[20];
-  float Lphi[2], Leta[2], LpT[2], Lm[2], Le[2];
+  float Gphi, Geta, GpT, Gm, Ge;
   float Zphi, Zeta, ZpT, Zm, Ze;
   unsigned short int jet_multiplicity;
   
@@ -121,21 +121,21 @@ int main(int argc, char* argv[])
   
   tree->Branch("weight", &weight, "weight/F");
 
-  tree->Branch("lepton_pT", LpT, "lepton_pT[2]/F");
-  tree->Branch("lepton_eta", Leta, "lepton_eta[2]/F");
-  tree->Branch("lepton_phi", Lphi, "lepton_phi[2]/F");
-  tree->Branch("lepton_m", Lm, "lepton_m[2]/F");
-  tree->Branch("lepton_e", Le, "lepton_e[2]/F");
+  tree->Branch("gamma_pT", &GpT, "gamma_pT/F");
+  tree->Branch("gamma_eta", &Geta, "gamma_eta/F");
+  tree->Branch("gamma_phi", &Gphi, "gamma_phi/F");
+  //tree->Branch("gamma_m", &Gm, "gamma_m/F");
+  tree->Branch("gamma_e", &Ge, "gamma_e/F");
   
-  tree->Branch("Z_pT", &ZpT, "Z_pT/F");
-  tree->Branch("Z_eta", &Zeta, "Z_eta/F");
-  tree->Branch("Z_phi", &Zphi, "Z_phi/F");
-  tree->Branch("Z_m", &Zm, "Z_m/F");
-  tree->Branch("Z_e", &Ze, "Z_e/F");
+  //tree->Branch("Z_pT", &ZpT, "Z_pT/F");
+  //tree->Branch("Z_eta", &Zeta, "Z_eta/F");
+  //tree->Branch("Z_phi", &Zphi, "Z_phi/F");
+  //tree->Branch("Z_m", &Zm, "Z_m/F");
+  //tree->Branch("Z_e", &Ze, "Z_e/F");
   
-  TLorentzVector v,v1,v2;       //for converting to cartesian coordinates
-  int parton = -1;
-
+  TLorentzVector v;//,v1,v2;       //for converting to cartesian coordinates
+  int parton = -1, gamma = -1;
+  bool check1, check2;
   /**************************************END OF SET-UP**************************************/
   cout<<"Progress:\n";
   for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
@@ -150,8 +150,8 @@ int main(int argc, char* argv[])
     Events->GetEntry(iEvent);
 
     fjInputs.resize(0);
-    vector<int> leptonList;
-    bool check = true;
+    //vector<int> leptonList;
+    check1 = true, check2 = true;
 
     //select relevant events and make partonList and fjInputs vectors
     for (unsigned int i = 0; i != eventParticleCount; ++i) 
@@ -159,8 +159,8 @@ int main(int argc, char* argv[])
       if( status[i] == 3 ) 
       {
         parton = i;
-        assert(check);
-        check = false;
+        assert(check1);
+        check1 = false;
       }
       else if ( status[i] == 1 ) 
       {   
@@ -168,12 +168,17 @@ int main(int argc, char* argv[])
         fastjet::PseudoJet particleTemp = v;
         fjInputs.push_back( particleTemp );
       }
-      else if(status[i] == 2) leptonList.push_back(i);
+      else if(status[i] == 2) 
+      {
+        gamma = i;
+        assert(check2);
+        check2 = false;
+      }
       else assert(false);
 
     }//Event selector loop
   
-    assert(leptonList.size()==2);
+    assert(gamma != -1);
 
     if (fjInputs.size() == 0) assert(false);
     
@@ -201,40 +206,39 @@ int main(int argc, char* argv[])
       // jets->Fill();
     }
 
-    for(unsigned int t = 0; t != 2; ++t)
-    {
-      Lphi[t] = phi[leptonList[t]];
-      Leta[t] = eta[leptonList[t]];
-      LpT[t] = pT[leptonList[t]];
-      Lm[t] = m[leptonList[t]];
+    
+    Gphi = phi[gamma];
+    Geta = eta[gamma];
+    GpT = pT[gamma];
+    Gm = m[gamma];
       
-      v.SetPtEtaPhiM(pT[leptonList[t]],eta[leptonList[t]],phi[leptonList[t]],m[leptonList[t]]);
-      Le[t] = v.E();
+    v.SetPtEtaPhiM(pT[gamma],eta[gamma],phi[gamma],m[gamma]);
+    Ge = v.E();
       // leptons->Fill();
-    }
+    
 
     // for(unsigned int t = 0; t != le)
-    v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
-    v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
-    v = v1+v2;
-    Zphi = v.Phi();
-    Zeta = v.Eta();
-    ZpT = v.Pt();
-    Zm = v.M();
-    Ze = v.E();
+    //v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
+    //v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
+    //v = v1+v2;
+    //Zphi = v.Phi();
+    //Zeta = v.Eta();
+    //ZpT = v.Pt();
+    //Zm = v.M();
+    //Ze = v.E();
     // Z->Fill();
     tree->Fill();
 
     // cout<<"Checkpoint2\n";
-    if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
-    if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
+    if(deltaR(phi[gamma],sortedJets[0].phi(),eta[gamma],sortedJets[0].eta()) < R) continue;
+    //if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
 
     unsigned short int jetFlavor = 0;
 
-    vector<fastjet::PseudoJet> jetParts = sortedJets[0].constituents();
-    if ( jetParts.size() == 1 ) continue;
-    if(parton == -1) continue;
-    // assert(parton != -1);
+    //vector<fastjet::PseudoJet> jetParts = sortedJets[0].constituents();
+    if ( sortedJets[0].constituents().size() == 1 ) continue;
+    //if(parton == -1) continue;
+    assert(parton != -1);
     //match with status 23 particles and assign flavor to leading jet only
     double dR = deltaR( phi[parton], sortedJets[0].phi(), eta[parton],sortedJets[0].eta());
     // cout<<eta[parton]<<" "<<phi[parton]<<endl;
