@@ -133,6 +133,6 @@ int main(int argc, char* argv[])
   tree->AutoSave("Overwrite"); 
   outFile.Close();
   cout<<"Done.\n";
-  cout<<"TTree is saved in "<<outputFilename<<endl;
+  cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }

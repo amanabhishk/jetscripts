@@ -10,4 +10,4 @@ Next:numberShowEvent = 0
 PhaseSpace:bias2Selection = on
 PhaseSpace:bias2SelectionPow = 4.5
 Beams:eCM = 8000.
-Next:numberCount = 500
+Next:numberCount = 100
