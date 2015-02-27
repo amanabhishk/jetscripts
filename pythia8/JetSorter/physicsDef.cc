@@ -48,6 +48,14 @@ int main(int argc, char* argv[])
 {
   std::clock_t start = std::clock();
 
+  char* options[argc];
+  if(argc != 3)
+  {
+    cout<<"Incorrect number of arguments. Correct input is:\n $ ./physicsDef.exe [inputfile.root] [outputfile.root]\n";
+    exit(0);
+  }
+  for(unsigned short int t = 0; t < argc ; ++t) options[t] = argv[t];
+
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
   
@@ -76,14 +84,18 @@ int main(int argc, char* argv[])
   TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
   TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
 
-  TFile *f = new TFile("events.root");              //input file with events
+
+  //std::stringstream inputFilename("");
+  //inputFilename << argv[1];
+  //cout<<options[1]<<endl;
+  TFile *f = new TFile(options[1]);              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile("jets_output.root", "RECREATE");    //output file 
+  TFile outFile(options[2], "RECREATE");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
-  cout<<nEvent<<" events found in the ROOT file."<<endl;
+  cout<<nEvent<<" events found in "<<options[1]<<"."<<endl;
 
   unsigned short int eventParticleCount;
   int id[size];
@@ -209,6 +221,7 @@ int main(int argc, char* argv[])
 
   taggedJets->Write();
   cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
+  cout<<"Analysis stored in "<<options[2]<<endl;
   
   return 0;
 }
