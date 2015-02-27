@@ -111,6 +111,21 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("phi", phi);
   Events->SetBranchAddress("m", m);
 
+
+  float Jw, JpT, JpTD, Jsigma2;
+  unsigned int Jmul;
+  unsigned char Jflavor;
+
+  TTree* tree = new TTree("tree","tree");
+  tree->Branch("jet_weight", &Jw , "jet_weight/F" );
+  tree->Branch("jet_pT", &JpT , "jet_pT/F" );
+  tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
+  tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
+  tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
+  tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
+
+
+  double num, den;
   TLorentzVector v;       //for converting to cartesian coordinates
 
   /**************************************END OF SET-UP**************************************/
@@ -141,7 +156,7 @@ int main(int argc, char* argv[])
     }//Event selector loop
   
     if (fjInputs.size() == 0) continue;
-    
+    assert(partonList.size() == 2);
     //clustering using fastjet
     vector <fastjet::PseudoJet> unsortedJets, sortedJets;
     fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
@@ -196,6 +211,18 @@ int main(int argc, char* argv[])
     {
       if(k == partonList.size()) break;
       if(sortedJets[k].eta() > etaMax) continue;
+      
+      Jw = weight;
+      JpT = sortedJets[k].pt();
+      Jmul = sortedJets[k].constituents().size();
+      Jflavor = jetFlavor[k];
+      num = 0, den = 0;
+      vector<fastjet::PseudoJet> jetParts = sortedJets[k].constituents();
+      for(unsigned int q = 0; q != Jmul; ++q) num += pow(jetParts[q].pt(),2);
+      for(unsigned int q = 0; q != Jmul; ++q) den += jetParts[q].pt();
+      JpTD = num/den;
+      tree->Fill();
+
       gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0, weight);
       lightquarkFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)? 1:0, weight);
       charmFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 4)? 1:0, weight);
@@ -219,7 +246,9 @@ int main(int argc, char* argv[])
   TH1D *uF = unmatchedFrac.ProjectionX("unmatched","");
   uF->Write();
 
+  tree->AutoSave("Overwrite");
   taggedJets->Write();
+  outFile.Close();
   cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
   cout<<"Analysis stored in "<<options[2]<<endl;
   
