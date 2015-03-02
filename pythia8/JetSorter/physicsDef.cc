@@ -186,6 +186,7 @@ int main(int argc, char* argv[])
     //flavor tagging begins
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
+      //if(pTD(sortedJets) != sortedJets.size()) cout<< "NO.\n";
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
       if ( jetParts.size() == 1 ) continue;
       
@@ -216,11 +217,8 @@ int main(int argc, char* argv[])
       JpT = sortedJets[k].pt();
       Jmul = sortedJets[k].constituents().size();
       Jflavor = jetFlavor[k];
-      num = 0, den = 0;
-      vector<fastjet::PseudoJet> jetParts = sortedJets[k].constituents();
-      for(unsigned int q = 0; q != Jmul; ++q) num += pow(jetParts[q].pt(),2);
-      for(unsigned int q = 0; q != Jmul; ++q) den += jetParts[q].pt();
-      JpTD = num/den;
+      JpTD = pTD(sortedJets[k]);
+      Jsigma2 = sigma2(sortedJets[k]);
       tree->Fill();
 
       gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0, weight);
