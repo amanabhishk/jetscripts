@@ -18,7 +18,7 @@ void dijetPlot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("jets_output.root","READ");
+	TFile *f = new TFile("jets_outputL.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -34,14 +34,22 @@ void dijetPlot()
 	tree->SetBranchAddress("jet_weight",&weight);
 	tree->SetBranchAddress("jet_multiplicity",&constituents);
 	
-	TH1D* multiplicity_g = new TH1D("multiplicity_g","multiplicity_g",20,0,40);
-	TH1D* multiplicity_q = new TH1D("multiplicity_q","multiplicity_q",20,0,40);
-	TH1D* multiplicity_u = new TH1D("multiplicity_u","multiplicity_u",20,0,40);
+	TH1D* multiplicity_g = new TH1D("multiplicity_g","multiplicity_g",60,0,60);
+	TH1D* multiplicity_q = new TH1D("multiplicity_q","multiplicity_q",60,0,60);
+	TH1D* multiplicity_u = new TH1D("multiplicity_u","multiplicity_u",60,0,60);
+	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",210,0,70);
+	TH1D* pTD_q = new TH1D("pTD_q","pTD_q",210,0,70);
+	TH1D* pTD_u = new TH1D("pTD_u","pTD_u",210,0,70);
 	multiplicity_q->Sumw2();
 	multiplicity_g->SetLineColor(kRed);
+	multiplicity_u->SetLineColor(kGreen);
 	multiplicity_g->Sumw2();
 	multiplicity_u->Sumw2();
-	
+	pTD_u->Sumw2();
+	pTD_g->Sumw2();
+	pTD_q->Sumw2();
+	pTD_g->SetLineColor(kRed);
+	pTD_u->SetLineColor(kGreen);
 	//TH1D* ratio = new TH1D("ratio","ratio",ptBins,ptRange);
 	//ratio->Sumw2();
 
@@ -51,16 +59,22 @@ void dijetPlot()
 		if(pT>100 || pT<80) continue;
 		//cout<<constituents<<endl;
 		//multiplicity_g->Fill(constituents);
-		if(flavor == 21) multiplicity_g->Fill(constituents,weight);
-		else if(flavor == 0) multiplicity_u->Fill(constituents,weight);
-		else multiplicity_q->Fill(constituents,weight);
+		if(flavor == 21) multiplicity_g->Fill(constituents,weight), pTD_g->Fill(pTD,weight);
+		else if(flavor == 0) multiplicity_u->Fill(constituents,weight),pTD_u->Fill(pTD,weight);
+		else multiplicity_q->Fill(constituents,weight),pTD_q->Fill(pTD,weight);
 	}
 
-	multiplicity_g->Scale(1/multiplicity_g->Integral());
-	multiplicity_q->Scale(1/multiplicity_q->Integral());
+	//multiplicity_g->Scale(1/multiplicity_g->Integral());
+	//multiplicity_q->Scale(1/multiplicity_q->Integral());
 	
-	multiplicity_q->Draw("HISTSAME");
 	multiplicity_g->Draw("HISTSAME");
+	multiplicity_q->Draw("HISTSAME");
+	multiplicity_u->Draw("HISTSAME");
+
+	//pTD_g->Draw("HIST");
+	//pTD_q->Draw("HISTSAME");
+	//pTD_u->Draw("HISTSAME");
+	
 	// TCanvas *c1 = new TCanvas("c1", "c1",900, 700);
 	// c1->Divide(1,2);
 	
