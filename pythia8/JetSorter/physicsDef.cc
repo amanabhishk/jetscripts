@@ -48,6 +48,14 @@ int main(int argc, char* argv[])
 {
   std::clock_t start = std::clock();
 
+  char* options[argc];
+  if(argc != 3)
+  {
+    cout<<"Incorrect number of arguments. Correct input is:\n $ ./physicsDef.exe [inputfile.root] [outputfile.root]\n";
+    exit(0);
+  }
+  for(unsigned short int t = 0; t < argc ; ++t) options[t] = argv[t];
+
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
   
@@ -78,10 +86,10 @@ int main(int argc, char* argv[])
   TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",100, 0, 20);
   TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
 
-  TFile *f = new TFile("50000events_gammaJet.root");              //input file with events
+  TFile *f = new TFile(options[1]);              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile("jets_output.root", "RECREATE");    //output file 
+  TFile outFile(options[2], "NEW");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
@@ -103,36 +111,18 @@ int main(int argc, char* argv[])
 
   // unsigned int limit = 20;
 
-  float Jphi[20], Jeta[20], JpT[20], Jm[20], Je[20];
-  float Gphi, Geta, GpT, Gm, Ge;
-  float Zphi, Zeta, ZpT, Zm, Ze;
-  unsigned short int jet_multiplicity;
-  
+  float Jw, JpT, JpTD, Jsigma2;
+  unsigned int Jmul;
+  unsigned char Jflavor;
+
   TTree* tree = new TTree("tree","tree");
-  // TTree* leptons = new TTree("Leptons","Leptons");
-  // TTree* Z = new TTree("Z","Z");
+  tree->Branch("jet_weight", &Jw , "jet_weight/F" );
+  tree->Branch("jet_pT", &JpT , "jet_pT/F" );
+  tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
+  tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
+  tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
+  tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
 
-  tree->Branch("jet_multiplicity", &jet_multiplicity, "jet_multiplicity/s");
-  tree->Branch("jet_pT", JpT, "jet_pT[jet_multiplicity]/F");
-  tree->Branch("jet_eta", Jeta, "jet_eta[jet_multiplicity]/F");
-  tree->Branch("jet_phi", Jphi, "jet_phi[jet_multiplicity]/F");
-  tree->Branch("jet_m", Jm, "jet_m[jet_multiplicity]/F");
-  tree->Branch("jet_e", Je, "jet_e[jet_multiplicity]/F");
-  
-  tree->Branch("weight", &weight, "weight/F");
-
-  tree->Branch("gamma_pT", &GpT, "gamma_pT/F");
-  tree->Branch("gamma_eta", &Geta, "gamma_eta/F");
-  tree->Branch("gamma_phi", &Gphi, "gamma_phi/F");
-  //tree->Branch("gamma_m", &Gm, "gamma_m/F");
-  tree->Branch("gamma_e", &Ge, "gamma_e/F");
-  
-  //tree->Branch("Z_pT", &ZpT, "Z_pT/F");
-  //tree->Branch("Z_eta", &Zeta, "Z_eta/F");
-  //tree->Branch("Z_phi", &Zphi, "Z_phi/F");
-  //tree->Branch("Z_m", &Zm, "Z_m/F");
-  //tree->Branch("Z_e", &Ze, "Z_e/F");
-  
   TLorentzVector v;//,v1,v2;       //for converting to cartesian coordinates
   int parton = -1, gamma = -1;
   bool check1, check2;
@@ -189,45 +179,8 @@ int main(int argc, char* argv[])
     sortedJets = sorted_by_pt(unsortedJets);
 
     jetMultiplicity->Fill(sortedJets.size());
-    jet_multiplicity = sortedJets.size();
+    //jet_multiplicity = sortedJets.size();
     if(sortedJets.size()==0)  continue;
-
-    
-
-    // cout<<"Checkpoint1\n";
-
-    for(unsigned int t = 0; t != sortedJets.size(); ++t)
-    {
-      Jphi[t] = sortedJets[t].phi();
-      Jeta[t] = sortedJets[t].eta();
-      JpT[t] = sortedJets[t].pt();
-      Jm[t] = sortedJets[t].m();
-      Je[t] = sortedJets[t].e();
-      // jets->Fill();
-    }
-
-    
-    Gphi = phi[gamma];
-    Geta = eta[gamma];
-    GpT = pT[gamma];
-    Gm = m[gamma];
-      
-    v.SetPtEtaPhiM(pT[gamma],eta[gamma],phi[gamma],m[gamma]);
-    Ge = v.E();
-      // leptons->Fill();
-    
-
-    // for(unsigned int t = 0; t != le)
-    //v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
-    //v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
-    //v = v1+v2;
-    //Zphi = v.Phi();
-    //Zeta = v.Eta();
-    //ZpT = v.Pt();
-    //Zm = v.M();
-    //Ze = v.E();
-    // Z->Fill();
-    tree->Fill();
 
     // cout<<"Checkpoint2\n";
     if(deltaR(phi[gamma],sortedJets[0].phi(),eta[gamma],sortedJets[0].eta()) < R) continue;
@@ -252,8 +205,14 @@ int main(int argc, char* argv[])
     }//tag tagging loop
     
     if(sortedJets[0].eta() > etaMax) continue;
-    
 
+    Jw = weight;
+    JpT = sortedJets[0].pt();
+    Jmul = sortedJets[0].constituents().size();
+    Jflavor = jetFlavor;
+    JpTD = pTD(sortedJets[0]);
+    Jsigma2 = sigma2(sortedJets[0]);
+    tree->Fill();    
 
     gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
     lightquarkFrac.Fill(sortedJets[0].pt(), (jetFlavor == 1 || jetFlavor == 2 || jetFlavor == 3)? 1:0, weight);
