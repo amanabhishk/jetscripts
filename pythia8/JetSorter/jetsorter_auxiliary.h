@@ -34,6 +34,9 @@
 // tdrStyle
 #include "tdrstyle_mod1.C"
 
+#include "TMatrix.h"
+#include "TMatrixDSymEigen.h"
+
 using namespace Pythia8;
 
 // From CMSSW
@@ -87,9 +90,13 @@ double deltaPhi(double phi1, double phi2){
   return dPhi;
 }
 
+double deltaEta(double eta1, double eta2){
+  return eta1-eta2;
+}
+
 double deltaR( double phi1, double phi2, double eta1, double eta2 ){
   
-  double dEta = eta1 - eta2;
+  double dEta = deltaEta(eta1,eta2);
   
   double dPhi = deltaPhi(phi1,phi2);
 
@@ -97,6 +104,60 @@ double deltaR( double phi1, double phi2, double eta1, double eta2 ){
 
   // cout<<"dEta:"<<dEta<<" dPhi:"<<dPhi<<" dR:"<<dR<<endl;
   return dR;
+}
+
+
+double pTD(const fastjet::PseudoJet& jet){
+  
+  double num = 0, den = 0;
+  vector<fastjet::PseudoJet> jetParts = jet.constituents();
+
+  for(unsigned int q = 0; q != jetParts.size(); ++q) num += pow(jetParts[q].pt(),2);
+  for(unsigned int q = 0; q != jetParts.size(); ++q) den += jetParts[q].pt();
+
+  return num/den;;
+}
+
+double sigma2(const fastjet::PseudoJet& jet){
+
+  vector <fastjet::PseudoJet> jetParts = jet.constituents(); 
+  double M11 = 0, M22 = 0, M12 = 0;
+
+  for(unsigned int q = 0; q != jetParts.size(); ++q) 
+  {
+    M11 += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),jet.eta()),2);
+  }
+  for(unsigned int q = 0; q != jetParts.size(); ++q) 
+  {
+    M22 += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),jet.phi()),2);
+  }
+  for(unsigned int q = 0; q != jetParts.size(); ++q) 
+  {
+    M12 += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),jet.eta())*deltaPhi(jetParts[q].phi(),jet.phi());    
+  }
+  
+  double e[4] = {
+    M11, M12,
+    M12, M22
+  };
+
+  TMatrixDSym m(2, e);
+  TMatrixDSymEigen me(m);
+
+  TVectorD eigenval = me.GetEigenValues();
+  //TMatrixD eigenvec = me.GetEigenVectors();
+
+  //m.Print();
+  //eigenval.Print();
+  //eigenvec.Print();
+  //if(eigenval[1]<0) cout<<393<<endl;
+  return eigenval[1];
+  //M21 = M12;
+
+
+
+
+
 }
 
 
