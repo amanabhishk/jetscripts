@@ -48,6 +48,14 @@ int main(int argc, char* argv[])
 {
   std::clock_t start = std::clock();
 
+  char* options[argc];
+  if(argc != 3)
+  {
+    cout<<"Incorrect number of arguments. Correct input is:\n $ ./physicsDef.exe [inputfile.root] [outputfile.root]\n";
+    exit(0);
+  }
+  for(unsigned short int t = 0; t < argc ; ++t) options[t] = argv[t];
+
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
   
@@ -78,10 +86,10 @@ int main(int argc, char* argv[])
   TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",100, 0, 20);
   TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
 
-  TFile *f = new TFile("20000eventsZjet_21.root");              //input file with events
+  TFile *f = new TFile(options[1]);              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile("jets_output21.root", "RECREATE");    //output file 
+  TFile outFile(options[2], "RECREATE");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
@@ -102,36 +110,17 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
   // unsigned int limit = 20;
+  float Jw, JpT, JpTD, Jsigma2;
+  unsigned int Jmul;
+  unsigned char Jflavor;
 
-  float Jphi[20], Jeta[20], JpT[20], Jm[20], Je[20];
-  float Lphi[2], Leta[2], LpT[2], Lm[2], Le[2];
-  float Zphi, Zeta, ZpT, Zm, Ze;
-  unsigned short int jet_multiplicity;
-  
   TTree* tree = new TTree("tree","tree");
-  // TTree* leptons = new TTree("Leptons","Leptons");
-  // TTree* Z = new TTree("Z","Z");
-
-  tree->Branch("jet_multiplicity", &jet_multiplicity, "jet_multiplicity/s");
-  tree->Branch("jet_pT", JpT, "jet_pT[jet_multiplicity]/F");
-  tree->Branch("jet_eta", Jeta, "jet_eta[jet_multiplicity]/F");
-  tree->Branch("jet_phi", Jphi, "jet_phi[jet_multiplicity]/F");
-  tree->Branch("jet_m", Jm, "jet_m[jet_multiplicity]/F");
-  tree->Branch("jet_e", Je, "jet_e[jet_multiplicity]/F");
-  
-  tree->Branch("weight", &weight, "weight/F");
-
-  tree->Branch("lepton_pT", LpT, "lepton_pT[2]/F");
-  tree->Branch("lepton_eta", Leta, "lepton_eta[2]/F");
-  tree->Branch("lepton_phi", Lphi, "lepton_phi[2]/F");
-  tree->Branch("lepton_m", Lm, "lepton_m[2]/F");
-  tree->Branch("lepton_e", Le, "lepton_e[2]/F");
-  
-  tree->Branch("Z_pT", &ZpT, "Z_pT/F");
-  tree->Branch("Z_eta", &Zeta, "Z_eta/F");
-  tree->Branch("Z_phi", &Zphi, "Z_phi/F");
-  tree->Branch("Z_m", &Zm, "Z_m/F");
-  tree->Branch("Z_e", &Ze, "Z_e/F");
+  tree->Branch("jet_weight", &Jw , "jet_weight/F" );
+  tree->Branch("jet_pT", &JpT , "jet_pT/F" );
+  tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
+  tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
+  tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
+  tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
   
   TLorentzVector v,v1,v2;       //for converting to cartesian coordinates
   int parton = -1;
@@ -184,46 +173,8 @@ int main(int argc, char* argv[])
     sortedJets = sorted_by_pt(unsortedJets);
 
     jetMultiplicity->Fill(sortedJets.size());
-    jet_multiplicity = sortedJets.size();
+    //jet_multiplicity = sortedJets.size();
     if(sortedJets.size()==0)  continue;
-
-    
-
-    // cout<<"Checkpoint1\n";
-
-    for(unsigned int t = 0; t != sortedJets.size(); ++t)
-    {
-      Jphi[t] = sortedJets[t].phi();
-      Jeta[t] = sortedJets[t].eta();
-      JpT[t] = sortedJets[t].pt();
-      Jm[t] = sortedJets[t].m();
-      Je[t] = sortedJets[t].e();
-      // jets->Fill();
-    }
-
-    for(unsigned int t = 0; t != 2; ++t)
-    {
-      Lphi[t] = phi[leptonList[t]];
-      Leta[t] = eta[leptonList[t]];
-      LpT[t] = pT[leptonList[t]];
-      Lm[t] = m[leptonList[t]];
-      
-      v.SetPtEtaPhiM(pT[leptonList[t]],eta[leptonList[t]],phi[leptonList[t]],m[leptonList[t]]);
-      Le[t] = v.E();
-      // leptons->Fill();
-    }
-
-    // for(unsigned int t = 0; t != le)
-    v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
-    v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
-    v = v1+v2;
-    Zphi = v.Phi();
-    Zeta = v.Eta();
-    ZpT = v.Pt();
-    Zm = v.M();
-    Ze = v.E();
-    // Z->Fill();
-    tree->Fill();
 
     // cout<<"Checkpoint2\n";
     if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
@@ -233,8 +184,8 @@ int main(int argc, char* argv[])
 
     vector<fastjet::PseudoJet> jetParts = sortedJets[0].constituents();
     if ( jetParts.size() == 1 ) continue;
-    if(parton == -1) continue;
-    // assert(parton != -1);
+    //if(parton == -1) continue;
+    assert(parton != -1);
     //match with status 23 particles and assign flavor to leading jet only
     double dR = deltaR( phi[parton], sortedJets[0].phi(), eta[parton],sortedJets[0].eta());
     // cout<<eta[parton]<<" "<<phi[parton]<<endl;
@@ -249,7 +200,13 @@ int main(int argc, char* argv[])
     
     if(sortedJets[0].eta() > etaMax) continue;
     
-
+    Jw = weight;
+    JpT = sortedJets[0].pt();
+    Jmul = sortedJets[0].constituents().size();
+    Jflavor = jetFlavor;
+    JpTD = pTD(sortedJets[0]);
+    Jsigma2 = sigma2(sortedJets[0]);
+    tree->Fill();
 
     gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
     lightquarkFrac.Fill(sortedJets[0].pt(), (jetFlavor == 1 || jetFlavor == 2 || jetFlavor == 3)? 1:0, weight);
