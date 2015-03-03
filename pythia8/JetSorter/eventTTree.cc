@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
-  Info& info = pythia.info;
+  //Info& info = pythia.info;
   pythia.readFile("pythiaSettings.cmnd");
   pythia.init();
   pythia.settings.listChanged();
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
     // cout<<"----------\n";
 
     leptonListFinal.resize(0);
-    weight = info.weight();
+    weight = pythia.info.weight();
     count = -1;
 
     for(int t=0; t != event.size(); ++t)
