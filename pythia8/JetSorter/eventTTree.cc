@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
-  Info& info = pythia.info;
+  //Info& info = pythia.info;
   pythia.readFile("pythiaSettings.cmnd");
   pythia.init();
   pythia.settings.listChanged();
@@ -82,15 +82,15 @@ int main(int argc, char* argv[])
   tree->Branch("phi", phi, "phi[n]/F");
   tree->Branch("m", m, "m[n]/F");
 
-  TH1D* type = new TH1D("type","type",26,0,26);
+  //TH1D* type = new TH1D("type","type",26,0,26);
   
   // Float_t rad;
   // tree->Branch("rad", &rad, "rad/F");
   // TH1D * fsr = new TH1D("fsr","fsr",300,0,1.5);
  
-  int state, count, temp,  index, identity, simple, complex;
+  //int count;//, temp,  index;// identity;// simple, complex;
   // Float_t num, den;
-  int gammaIndex = -1;
+  int count, gammaIndex = -1;
   bool skip;
 
   /****************************************END OF SET-UP**************************************************/
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     // cout<<"----------\n";
 
     //leptonListFinal.resize(0);
-    weight = info.weight();
+    weight = pythia.info.weight();
     count = -1;
 
     for(int t = 0; t != event.size(); ++t) //find gamma from the hard process
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
       {
         if(abs(event[event[gammaIndex].daughter1()].id()) != 11)
         {
-          ++complex;
+          //++complex;
           skip = true;
           //cout<<"--------------------------------\n";
           //cout << "Exception: "<<gammaIndex<<endl;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         
         if(abs(event[event[gammaIndex].daughter1()].id()) == 11) 
         {
-          ++simple;
+          //++simple;
           skip = true;
         }
         break;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
       {
         ++count;
         status[count] = 3;
-        type->Fill(identity);
+        //type->Fill(identity);
       }
 
       else continue;
@@ -192,12 +192,12 @@ int main(int argc, char* argv[])
   // fsr->Write();
 
   // tree->Print();
-  cout<<simple<<" "<<complex<<endl;
-  type->Write();
+  //cout<<simple<<" "<<complex<<endl;
+  //type->Write();
   tree->AutoSave("Overwrite");
   outFile.Close();
   // makeTree();
   // cout<<"Done.\n";
-  // cout<<"TTree is saved in "<<outputFilename<<endl;
+  cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }
