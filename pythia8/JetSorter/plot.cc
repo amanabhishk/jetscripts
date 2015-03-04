@@ -19,7 +19,7 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("o_dijet.root","READ");
+	TFile *f = new TFile("o_Zjet.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -170,11 +170,11 @@ void plot()
 	h4->GetYaxis()->SetNoExponent();
 	h4->GetXaxis()->SetNoExponent();
 	h4->GetXaxis()->SetRangeUser(0,60);
-	multiplicity_q->Add(multiplicity_u);
-	multiplicity_g->Add(multiplicity_q);
+	multiplicity_g->Add(multiplicity_u);
+	multiplicity_q->Add(multiplicity_g);
 
 	TCanvas *c5 = tdrCanvas("c5",h4,0,33);
-	tdrDraw(multiplicity_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(multiplicity_g,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
 	tdrDraw(multiplicity_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(multiplicity_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 
@@ -189,7 +189,7 @@ void plot()
 	h1->GetXaxis()->SetRangeUser(0,60);
 
 	TCanvas *c2 = tdrCanvas("c2",h1,0,33);
-	tdrDraw(gm,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(gm,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
 	tdrDraw(um,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(qm,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	gm->Scale(1/gm->Integral());
@@ -209,11 +209,11 @@ void plot()
 	h2->GetYaxis()->SetNoExponent();
 	h2->GetXaxis()->SetNoExponent();
 	h2->GetXaxis()->SetRangeUser(0,30);
-	pTD_q->Add(pTD_u);
-	pTD_g->Add(pTD_q);
+	pTD_g->Add(pTD_u);
+	pTD_q->Add(pTD_g);
 
 	TCanvas *c3 = tdrCanvas("c3",h2,0,33);
-	tdrDraw(pTD_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(pTD_g,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
 	tdrDraw(pTD_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(pTD_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	
@@ -227,7 +227,7 @@ void plot()
 	h5->GetXaxis()->SetRangeUser(0,30);
 
 	TCanvas *c6 = tdrCanvas("c6",h5,0,33);
-	tdrDraw(gD,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(gD,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
 	tdrDraw(uD,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(qD,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	gD->Scale(1/gD->Integral());
@@ -244,29 +244,30 @@ void plot()
 
 	TH1D *h6 = new TH1D("h6",";#sigma_{2};Events",100,0,0.2);
 	h6->SetMinimum(0);
-	h6->SetMaximum(0.2);
+	h6->SetMaximum(0.08);
 	h6->GetYaxis()->SetNoExponent();
 	h6->GetXaxis()->SetNoExponent();
 	h6->GetXaxis()->SetRangeUser(0,0.2);
-	sigma2_q->Add(sigma2_u);
-	sigma2_g->Add(sigma2_q);
+	sigma2_g->Add(sigma2_u);
+	sigma2_q->Add(sigma2_g);
 
 	TCanvas *c7 = tdrCanvas("c7",h6,0,33);
-	tdrDraw(sigma2_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
-	tdrDraw(sigma2_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
-	tdrDraw(sigma2_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(sigma2_q,"HIST",kDot,kBlue,kSolid,-1,3003,kBlue);
+	tdrDraw(sigma2_g,"HIST",kDot,kRed-3,kSolid,-1,3004,kRed-3);
+	tdrDraw(sigma2_u,"HIST",kDot,kGreen-1,kSolid,-1,3005,kGreen-1);
+	
 
 	//SEPARATE
 	setTDRStyle();
 	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,0.2);
 	h3->SetMinimum(0);
-	h3->SetMaximum(0.2);
+	h3->SetMaximum(0.08);
 	h3->GetYaxis()->SetNoExponent();
 	h3->GetXaxis()->SetNoExponent();
 	h3->GetXaxis()->SetRangeUser(0,0.2);
 
 	TCanvas *c4 = tdrCanvas("c4",h3,0,33);
-	tdrDraw(gs,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(gs,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
 	tdrDraw(us,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(qs,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	qs->Scale(1/qs->Integral());
