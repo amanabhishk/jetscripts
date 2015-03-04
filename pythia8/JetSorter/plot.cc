@@ -19,7 +19,7 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("jets_outputL.root","READ");
+	TFile *f = new TFile("o_Zjet.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -111,6 +111,7 @@ void plot()
   	TH1D *h = new TH1D("h",";p_{T} (GeV);Fraction",1000,20,2000);
 
 	tdrDraw(unmatched,"",kOpenCircle,kGray+2,kSolid,-1,1001,kGray);
+	gStyle->SetOptStat(kFALSE);
 	tdrDraw(gluons,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
 	tdrDraw(light_quarks,"",kFullCircle,kGreen-1,kSolid,-1,1001,kYellow-9);
 	tdrDraw(charm,"",kFullCircle,kGreen-1,kSolid,-1,1001,kGreen-9);
@@ -135,6 +136,8 @@ void plot()
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Flavor fraction");
 	// hs->SetLogx();
+
+
 	TLegend *leg = new TLegend(0.175,0.50,0.5,0.78);
 
 
@@ -153,12 +156,12 @@ void plot()
 	
 	gPad->SetLogx();
 	
-	/////////////////////////////////////
+	/*****************Constituents*****************/
 
 	setTDRStyle();
 	TH1D *h1 = new TH1D("h1",";Number of constituents;Events",100,0,1000);
 	h1->SetMinimum(0);
-	//h1->SetMaximum(1);
+	h1->SetMaximum(0.1);
 	h1->GetYaxis()->SetNoExponent();
 	h1->GetXaxis()->SetNoExponent();
 	//h1->GetXaxis()->SetMoreLogLabels(kTRUE);
@@ -166,37 +169,39 @@ void plot()
 	// h1->GetYaxis()->SetMoreLogLabels(kTRUE);
 	// gStyle->SetOptStat(kFALSE);
 	TCanvas *c2 = tdrCanvas("c2",h1,0,33);
-	tdrDraw(multiplicity_g,"P",kDot,kRed-9,kSolid,-1,1001,kBlue-6);
-	tdrDraw(multiplicity_u,"P",kDot,kGray,kSolid,-1,1001,kBlue-6);
-	tdrDraw(multiplicity_q,"P",kDot,kBlue,kSolid,-1,1001,kBlue-6);
+	tdrDraw(multiplicity_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(multiplicity_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(multiplicity_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	multiplicity_g->Scale(1/multiplicity_g->Integral());
 	multiplicity_u->Scale(1/multiplicity_u->Integral());
 	multiplicity_q->Scale(1/multiplicity_q->Integral());	
-	////////////////////////////////////
+	
+	/****************pTD****************/
 
 	setTDRStyle();
 	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",100,0,1000);
 	//h2->SetMinimum(0);
-	//h2->SetMaximum(1);
+	h2->SetMaximum(0.1);
 	h2->GetYaxis()->SetNoExponent();
 	h2->GetXaxis()->SetNoExponent();
 	//h2->GetXaxis()->SetMoreLogLabels(kTRUE);
-	h2->GetXaxis()->SetRangeUser(0,1);
+	h2->GetXaxis()->SetRangeUser(0,30);
 	// h2->GetYaxis()->SetMoreLogLabels(kTRUE);
 	// gStyle->SetOptStat(kFALSE);
 	TCanvas *c3 = tdrCanvas("c3",h2,0,33);
-	tdrDraw(pTD_g,"P",kDot,kRed-9,kSolid,-1,1001,kBlue-6);
-	tdrDraw(pTD_u,"P",kDot,kGray,kSolid,-1,1001,kBlue-6);
-	tdrDraw(pTD_q,"P",kDot,kBlue,kSolid,-1,1001,kBlue-6);
+	tdrDraw(pTD_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(pTD_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(pTD_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	pTD_g->Scale(1/pTD_g->Integral());
 	pTD_u->Scale(1/pTD_u->Integral());
 	pTD_q->Scale(1/pTD_q->Integral());
 
-	////////////////////////////////////
+	/****************sigma2****************/
+	
 	setTDRStyle();
 	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,1000);
 	//h3->SetMinimum(0);
-	//h3->SetMaximum(1);
+	h3->SetMaximum(0.3);
 	h3->GetYaxis()->SetNoExponent();
 	h3->GetXaxis()->SetNoExponent();
 	//h3->GetXaxis()->SetMoreLogLabels(kTRUE);
@@ -204,9 +209,9 @@ void plot()
 	// h3->GetYaxis()->SetMoreLogLabels(kTRUE);
 	// gStyle->SetOptStat(kFALSE);
 	TCanvas *c4 = tdrCanvas("c4",h3,0,33);
-	tdrDraw(sigma2_g,"P",kDot,kRed-9,kSolid,-1,1001,kBlue-6);
-	tdrDraw(sigma2_u,"P",kDot,kGray,kSolid,-1,1001,kBlue-6);
-	tdrDraw(sigma2_q,"P",kDot,kBlue,kSolid,-1,1001,kBlue-6);
+	tdrDraw(sigma2_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(sigma2_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(sigma2_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
 	sigma2_q->Scale(1/sigma2_q->Integral());
 	sigma2_u->Scale(1/sigma2_u->Integral());
 	sigma2_g->Scale(1/sigma2_g->Integral());
