@@ -126,7 +126,11 @@ void setTDRStyle() {
   // tdrStyle->SetLegoInnerR(Float_t rad = 0.5);
   // tdrStyle->SetNumberContours(Int_t number = 20);
 
+<<<<<<< HEAD
   //tdrStyle->SetEndErrorSize(2);
+=======
+  tdrStyle->SetEndErrorSize(2);
+>>>>>>> physics-definition-dijet
   // tdrStyle->SetErrorMarker(20);
   //tdrStyle->SetErrorX(0.);
   
@@ -241,11 +245,19 @@ void setTDRStyle() {
 // Global variables
 //
 
+<<<<<<< HEAD
 TString cmsText     = "Pythia8 Simulation";
 float cmsTextFont   = 61;  // default is helvetic-bold
 
 bool writeExtraText = true;//false;
 TString extraText   = "4C Tune";
+=======
+TString cmsText     = "CMS";
+float cmsTextFont   = 61;  // default is helvetic-bold
+
+bool writeExtraText = true;//false;
+TString extraText   = "Preliminary";
+>>>>>>> physics-definition-dijet
 TString extraText2   = ""; // For Simulation Preliminary on two lines
 float extraTextFont = 52;  // default is helvetica-italics
 
