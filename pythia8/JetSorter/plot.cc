@@ -19,7 +19,7 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("o_Zjet.root","READ");
+	TFile *f = new TFile("o_dijet.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -52,18 +52,18 @@ void plot()
 	multiplicity_u->SetLineColor(kGreen);
 	
 
-	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",210,0,70);
-	TH1D* pTD_q = new TH1D("pTD_q","pTD_q",210,0,70);
-	TH1D* pTD_u = new TH1D("pTD_u","pTD_u",210,0,70);
+	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",100,0,1);
+	TH1D* pTD_q = new TH1D("pTD_q","pTD_q",100,0,1);
+	TH1D* pTD_u = new TH1D("pTD_u","pTD_u",100,0,1);
 	pTD_u->Sumw2();
 	pTD_g->Sumw2();
 	pTD_q->Sumw2();
 	pTD_g->SetLineColor(kRed);
 	pTD_u->SetLineColor(kGreen);
 
-	TH1D* sigma2_g = new TH1D("sigma2_g","sigma2_g",210,0,70);
-	TH1D* sigma2_q = new TH1D("sigma2_q","sigma2_q",210,0,70);
-	TH1D* sigma2_u = new TH1D("sigma2_u","sigma2_u",210,0,70);
+	TH1D* sigma2_g = new TH1D("sigma2_g","sigma2_g",100,0,0.2);
+	TH1D* sigma2_q = new TH1D("sigma2_q","sigma2_q",100,0,0.2);
+	TH1D* sigma2_u = new TH1D("sigma2_u","sigma2_u",100,0,0.2);
 	sigma2_u->Sumw2();
 	sigma2_g->Sumw2();
 	sigma2_q->Sumw2();
@@ -159,7 +159,7 @@ void plot()
 	/*****************Constituents*****************/
 
 	setTDRStyle();
-	TH1D *h1 = new TH1D("h1",";Number of constituents;Events",100,0,1000);
+	TH1D *h1 = new TH1D("h1",";Number of constituents;Events",60,0,60);
 	h1->SetMinimum(0);
 	h1->SetMaximum(0.1);
 	h1->GetYaxis()->SetNoExponent();
@@ -179,7 +179,7 @@ void plot()
 	/****************pTD****************/
 
 	setTDRStyle();
-	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",100,0,1000);
+	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",100,0,1);
 	//h2->SetMinimum(0);
 	h2->SetMaximum(0.1);
 	h2->GetYaxis()->SetNoExponent();
@@ -199,9 +199,9 @@ void plot()
 	/****************sigma2****************/
 	
 	setTDRStyle();
-	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,1000);
-	//h3->SetMinimum(0);
-	h3->SetMaximum(0.3);
+	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,0.2);
+	h3->SetMinimum(0);
+	h3->SetMaximum(0.2);
 	h3->GetYaxis()->SetNoExponent();
 	h3->GetXaxis()->SetNoExponent();
 	//h3->GetXaxis()->SetMoreLogLabels(kTRUE);
