@@ -115,7 +115,8 @@ double pTD(const fastjet::PseudoJet& jet){
   for(unsigned int q = 0; q != jetParts.size(); ++q) num += pow(jetParts[q].pt(),2);
   for(unsigned int q = 0; q != jetParts.size(); ++q) den += jetParts[q].pt();
 
-  return num/den;;
+  num = pow(num, 0.5);
+  return num/den;
 }
 
 double sigma2(const fastjet::PseudoJet& jet){
@@ -146,12 +147,15 @@ double sigma2(const fastjet::PseudoJet& jet){
 
   TVectorD eigenval = me.GetEigenValues();
   //TMatrixD eigenvec = me.GetEigenVectors();
-
+  double pT2;
+  for(unsigned int q = 0; q != jetParts.size(); ++q) pT2 += pow(jetParts[q].pt(),2);
+  return pow(eigenval[1]/pT2,0.5);
   //m.Print();
   //eigenval.Print();
   //eigenvec.Print();
   //if(eigenval[1]<0) cout<<393<<endl;
-  return eigenval[1];
+  
+  //return eigenval[1];
   //M21 = M12;
 
 
