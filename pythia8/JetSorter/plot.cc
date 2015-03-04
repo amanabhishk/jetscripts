@@ -19,7 +19,7 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("o_Zjet.root","READ");
+	TFile *f = new TFile("o_dijet.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -52,18 +52,18 @@ void plot()
 	multiplicity_u->SetLineColor(kGreen);
 	
 
-	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",210,0,70);
-	TH1D* pTD_q = new TH1D("pTD_q","pTD_q",210,0,70);
-	TH1D* pTD_u = new TH1D("pTD_u","pTD_u",210,0,70);
+	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",100,0,1);
+	TH1D* pTD_q = new TH1D("pTD_q","pTD_q",100,0,1);
+	TH1D* pTD_u = new TH1D("pTD_u","pTD_u",100,0,1);
 	pTD_u->Sumw2();
 	pTD_g->Sumw2();
 	pTD_q->Sumw2();
 	pTD_g->SetLineColor(kRed);
 	pTD_u->SetLineColor(kGreen);
 
-	TH1D* sigma2_g = new TH1D("sigma2_g","sigma2_g",210,0,70);
-	TH1D* sigma2_q = new TH1D("sigma2_q","sigma2_q",210,0,70);
-	TH1D* sigma2_u = new TH1D("sigma2_u","sigma2_u",210,0,70);
+	TH1D* sigma2_g = new TH1D("sigma2_g","sigma2_g",100,0,0.2);
+	TH1D* sigma2_q = new TH1D("sigma2_q","sigma2_q",100,0,0.2);
+	TH1D* sigma2_u = new TH1D("sigma2_u","sigma2_u",100,0,0.2);
 	sigma2_u->Sumw2();
 	sigma2_g->Sumw2();
 	sigma2_q->Sumw2();
@@ -158,62 +158,119 @@ void plot()
 	
 	/*****************Constituents*****************/
 
+	//STACKED
 	setTDRStyle();
-	TH1D *h1 = new TH1D("h1",";Number of constituents;Events",100,0,1000);
+	TH1F *um = (TH1F*)multiplicity_u->Clone("um");
+	TH1F *gm = (TH1F*)multiplicity_g->Clone("gm");
+	TH1F *qm = (TH1F*)multiplicity_q->Clone("qm");
+
+	TH1D *h4 = new TH1D("h4",";Number of constituents;Events",60,0,60);
+	h4->SetMinimum(0);
+	h4->SetMaximum(0.1);
+	h4->GetYaxis()->SetNoExponent();
+	h4->GetXaxis()->SetNoExponent();
+	h4->GetXaxis()->SetRangeUser(0,60);
+	multiplicity_q->Add(multiplicity_u);
+	multiplicity_g->Add(multiplicity_q);
+
+	TCanvas *c5 = tdrCanvas("c5",h4,0,33);
+	tdrDraw(multiplicity_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(multiplicity_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(multiplicity_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+
+
+	//SEPARATE
+	setTDRStyle();
+	TH1D *h1 = new TH1D("h1",";Number of constituents;Events",60,0,60);
 	h1->SetMinimum(0);
 	h1->SetMaximum(0.1);
 	h1->GetYaxis()->SetNoExponent();
 	h1->GetXaxis()->SetNoExponent();
-	//h1->GetXaxis()->SetMoreLogLabels(kTRUE);
 	h1->GetXaxis()->SetRangeUser(0,60);
-	// h1->GetYaxis()->SetMoreLogLabels(kTRUE);
-	// gStyle->SetOptStat(kFALSE);
+
 	TCanvas *c2 = tdrCanvas("c2",h1,0,33);
-	tdrDraw(multiplicity_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
-	tdrDraw(multiplicity_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
-	tdrDraw(multiplicity_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
-	multiplicity_g->Scale(1/multiplicity_g->Integral());
-	multiplicity_u->Scale(1/multiplicity_u->Integral());
-	multiplicity_q->Scale(1/multiplicity_q->Integral());	
-	
+	tdrDraw(gm,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(um,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(qm,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	gm->Scale(1/gm->Integral());
+	um->Scale(1/um->Integral());
+	qm->Scale(1/qm->Integral());	
+		
 	/****************pTD****************/
 
+	//STACKED
 	setTDRStyle();
-	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",100,0,1000);
-	//h2->SetMinimum(0);
-	h2->SetMaximum(0.1);
+	TH1F *uD = (TH1F*)pTD_u->Clone("uD");
+	TH1F *gD = (TH1F*)pTD_g->Clone("gD");
+	TH1F *qD = (TH1F*)pTD_q->Clone("qD");
+
+	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",100,0,1);
+	h2->SetMaximum(0.14);
 	h2->GetYaxis()->SetNoExponent();
 	h2->GetXaxis()->SetNoExponent();
-	//h2->GetXaxis()->SetMoreLogLabels(kTRUE);
 	h2->GetXaxis()->SetRangeUser(0,30);
-	// h2->GetYaxis()->SetMoreLogLabels(kTRUE);
-	// gStyle->SetOptStat(kFALSE);
+	pTD_q->Add(pTD_u);
+	pTD_g->Add(pTD_q);
+
 	TCanvas *c3 = tdrCanvas("c3",h2,0,33);
 	tdrDraw(pTD_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
 	tdrDraw(pTD_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(pTD_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
-	pTD_g->Scale(1/pTD_g->Integral());
-	pTD_u->Scale(1/pTD_u->Integral());
-	pTD_q->Scale(1/pTD_q->Integral());
+	
+
+	//SEPARATE
+	setTDRStyle();
+	TH1D *h5 = new TH1D("h5",";p_{T}D;Events",100,0,1);
+	h5->SetMaximum(0.1);
+	h5->GetYaxis()->SetNoExponent();
+	h5->GetXaxis()->SetNoExponent();
+	h5->GetXaxis()->SetRangeUser(0,30);
+
+	TCanvas *c6 = tdrCanvas("c6",h5,0,33);
+	tdrDraw(gD,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(uD,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(qD,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	gD->Scale(1/gD->Integral());
+	uD->Scale(1/uD->Integral());
+	qD->Scale(1/qD->Integral());
 
 	/****************sigma2****************/
 	
+	//STACKED
 	setTDRStyle();
-	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,1000);
-	//h3->SetMinimum(0);
-	h3->SetMaximum(0.3);
-	h3->GetYaxis()->SetNoExponent();
-	h3->GetXaxis()->SetNoExponent();
-	//h3->GetXaxis()->SetMoreLogLabels(kTRUE);
-	h3->GetXaxis()->SetRangeUser(0,0.2);
-	// h3->GetYaxis()->SetMoreLogLabels(kTRUE);
-	// gStyle->SetOptStat(kFALSE);
-	TCanvas *c4 = tdrCanvas("c4",h3,0,33);
+	TH1F *us = (TH1F*)sigma2_u->Clone("us");
+	TH1F *gs = (TH1F*)sigma2_g->Clone("gs");
+	TH1F *qs = (TH1F*)sigma2_q->Clone("qs");
+
+	TH1D *h6 = new TH1D("h6",";#sigma_{2};Events",100,0,0.2);
+	h6->SetMinimum(0);
+	h6->SetMaximum(0.2);
+	h6->GetYaxis()->SetNoExponent();
+	h6->GetXaxis()->SetNoExponent();
+	h6->GetXaxis()->SetRangeUser(0,0.2);
+	sigma2_q->Add(sigma2_u);
+	sigma2_g->Add(sigma2_q);
+
+	TCanvas *c7 = tdrCanvas("c7",h6,0,33);
 	tdrDraw(sigma2_g,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
 	tdrDraw(sigma2_u,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
 	tdrDraw(sigma2_q,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
-	sigma2_q->Scale(1/sigma2_q->Integral());
-	sigma2_u->Scale(1/sigma2_u->Integral());
-	sigma2_g->Scale(1/sigma2_g->Integral());
+
+	//SEPARATE
+	setTDRStyle();
+	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,0.2);
+	h3->SetMinimum(0);
+	h3->SetMaximum(0.2);
+	h3->GetYaxis()->SetNoExponent();
+	h3->GetXaxis()->SetNoExponent();
+	h3->GetXaxis()->SetRangeUser(0,0.2);
+
+	TCanvas *c4 = tdrCanvas("c4",h3,0,33);
+	tdrDraw(gs,"HIST",kDot,kRed-9,kSolid,-1,3003,kRed-9);
+	tdrDraw(us,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(qs,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	qs->Scale(1/qs->Integral());
+	us->Scale(1/us->Integral());
+	gs->Scale(1/gs->Integral());
 }
 
