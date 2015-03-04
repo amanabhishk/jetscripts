@@ -172,29 +172,9 @@ double sigma2(const fastjet::PseudoJet& jet){
 
   TVectorD eigenval = me.GetEigenValues();
   TVectorD eigenval_cut = me_cut.GetEigenValues();
-  //TMatrixD eigenvec = me.GetEigenVectors();
-  //double pT2(0);
-  
+
   return pow(eigenval[1]/pT2,0.5);
-  //m.Print();
-  //eigenval.Print();
-  //eigenvec.Print();
-  //if(eigenval[1]<0) cout<<393<<endl;
-  
-  //return eigenval[1];
-  //M21 = M12;
-
-
-
-
-
 }
-
-
-
-
-
-
 
 void histFiller( vector<TProfile*> &hists, double pt, double eTot, double piPlus,
   double piMinus, double pi0Gamma, double kaPlus, double kaMinus, double kSZero,
