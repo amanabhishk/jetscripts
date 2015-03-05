@@ -112,8 +112,12 @@ double pTD(const fastjet::PseudoJet& jet){
   double num = 0, den = 0;
   vector<fastjet::PseudoJet> jetParts = jet.constituents();
 
-  for(unsigned int q = 0; q != jetParts.size(); ++q) num += pow(jetParts[q].pt(),2);
-  for(unsigned int q = 0; q != jetParts.size(); ++q) den += jetParts[q].pt();
+  for(unsigned int q = 0; q != jetParts.size(); ++q) 
+  {
+    num += pow(jetParts[q].pt(),2);
+    den += jetParts[q].pt();
+  }
+  //for(unsigned int q = 0; q != jetParts.size(); ++q) 
 
   num = pow(num, 0.5);
   return num/den;
@@ -122,19 +126,31 @@ double pTD(const fastjet::PseudoJet& jet){
 double sigma2(const fastjet::PseudoJet& jet){
 
   vector <fastjet::PseudoJet> jetParts = jet.constituents(); 
-  double M11 = 0, M22 = 0, M12 = 0;
+  double M11 = 0, M22 = 0, M12 = 0, M11_cut = 0, M22_cut = 0, M12_cut = 0;
+  double phi(0), eta(0), pT2(0);
+  
+  for(unsigned int q = 0; q != jetParts.size(); ++q) 
+  {
+    pT2 += pow(jetParts[q].pt(),2);
+    eta += pow(jetParts[q].pt(),2)*jetParts[q].eta();
+    phi += pow(jetParts[q].pt(),2)*jetParts[q].phi();
+  }
+
+  eta = eta/pT2;
+  phi = phi/pT2;
 
   for(unsigned int q = 0; q != jetParts.size(); ++q) 
   {
-    M11 += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),jet.eta()),2);
-  }
-  for(unsigned int q = 0; q != jetParts.size(); ++q) 
-  {
-    M22 += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),jet.phi()),2);
-  }
-  for(unsigned int q = 0; q != jetParts.size(); ++q) 
-  {
-    M12 += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),jet.eta())*deltaPhi(jetParts[q].phi(),jet.phi());    
+    if(jetParts[q].pt()>1)
+    {
+      M11_cut += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
+      M22_cut += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);
+      M12_cut += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),eta)*deltaPhi(jetParts[q].phi(),phi);          
+    }
+
+    M11 += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
+    M22 += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);
+    M12 += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),eta)*deltaPhi(jetParts[q].phi(),phi);    
   }
   
   double e[4] = {
@@ -142,32 +158,44 @@ double sigma2(const fastjet::PseudoJet& jet){
     M12, M22
   };
 
+  double e_cut[4] = {
+    M11_cut, M12_cut,
+    M12_cut, M22_cut
+  };
+
   TMatrixDSym m(2, e);
   TMatrixDSymEigen me(m);
 
+  TMatrixDSym m_cut(2, e_cut);
+  TMatrixDSymEigen me_cut(m_cut);
+
+
   TVectorD eigenval = me.GetEigenValues();
-  //TMatrixD eigenvec = me.GetEigenVectors();
-  double pT2;
-  for(unsigned int q = 0; q != jetParts.size(); ++q) pT2 += pow(jetParts[q].pt(),2);
+  TVectorD eigenval_cut = me_cut.GetEigenValues();
+
   return pow(eigenval[1]/pT2,0.5);
-  //m.Print();
-  //eigenval.Print();
-  //eigenvec.Print();
-  //if(eigenval[1]<0) cout<<393<<endl;
-  
-  //return eigenval[1];
-  //M21 = M12;
-
-
-
-
-
 }
 
+bool ischarge(const int& c)
+{
+  int pdgid = abs(c);//, digit, charge = 0;
+  if(pdgid == 22 || pdgid == 12 ||pdgid == 14 ||pdgid == 16 ) return false; //photon and neutrinos
+  else if(pdgid == 11 ||pdgid == 13 ||pdgid == 15 ) return true; //charged leptons
+  else if(pdgid == 211 || pdgid == 321 || pdgid == 411 || pdgid == 431 || pdgid == 213 || pdgid == 323) return true; //charged mesons
+  else if(pdgid == 311 || pdgid == 421 || pdgid == 111 || pdgid == 221 || pdgid == 331 || pdgid == 130 || pdgid == 310 || pdgid == 313 || pdgid == 113 || pdgid == 223 || pdgid == 333) return false; //neutral mesons
+  else if(pdgid == 2112 || pdgid == 3122 || pdgid == 3212) return false;//neutral baryons
+  else if(pdgid == 2212 || pdgid == 3112 || pdgid == 3222) return true;//charged baryons
+  else
+  {
+    cout<<"ischarge: List exhausted!! Add this pdgid: "<<c<<endl;
+    return false;
+  }
 
+  //pdgid = pdgid/10;
 
+  //pdgid = abs(c)/10;
 
-
+}
 
 
 void histFiller( vector<TProfile*> &hists, double pt, double eTot, double piPlus,
