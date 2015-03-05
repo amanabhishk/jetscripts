@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
   // unsigned int limit = 20;
-  float Jw, JpT, JpTD, Jsigma2;
+  float Jw, JpT, JpTD, Jsigma2[] = {0,0};
   unsigned int Jmul;
   unsigned char Jflavor;
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
   tree->Branch("jet_weight", &Jw , "jet_weight/F" );
   tree->Branch("jet_pT", &JpT , "jet_pT/F" );
   tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
-  tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
+  tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
   tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
   tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
   
@@ -155,6 +155,7 @@ int main(int argc, char* argv[])
       {   
         v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
         fastjet::PseudoJet particleTemp = v;
+        particleTemp.set_user_index(id[i]);
         fjInputs.push_back( particleTemp );
       }
       else if(status[i] == 2) leptonList.push_back(i);
@@ -205,7 +206,7 @@ int main(int argc, char* argv[])
     Jmul = sortedJets[0].constituents().size();
     Jflavor = jetFlavor;
     JpTD = pTD(sortedJets[0]);
-    Jsigma2 = sigma2(sortedJets[0]);
+    sigma2(sortedJets[0],Jsigma2);
     tree->Fill();
 
     gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
