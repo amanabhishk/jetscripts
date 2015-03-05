@@ -176,6 +176,28 @@ double sigma2(const fastjet::PseudoJet& jet){
   return pow(eigenval[1]/pT2,0.5);
 }
 
+bool ischarge(const int& c)
+{
+  int pdgid = abs(c);//, digit, charge = 0;
+  if(pdgid == 22 || pdgid == 12 ||pdgid == 14 ||pdgid == 16 ) return false; //photon and neutrinos
+  else if(pdgid == 11 ||pdgid == 13 ||pdgid == 15 ) return true; //charged leptons
+  else if(pdgid == 211 || pdgid == 321 || pdgid == 411 || pdgid == 431 || pdgid == 213 || pdgid == 323) return true; //charged mesons
+  else if(pdgid == 311 || pdgid == 421 || pdgid == 111 || pdgid == 221 || pdgid == 331 || pdgid == 130 || pdgid == 310 || pdgid == 313 || pdgid == 113 || pdgid == 223 || pdgid == 333) return false; //neutral mesons
+  else if(pdgid == 2112 || pdgid == 3122 || pdgid == 3212) return false;//neutral baryons
+  else if(pdgid == 2212 || pdgid == 3112 || pdgid == 3222) return true;//charged baryons
+  else
+  {
+    cout<<"ischarge: List exhausted!! Add this pdgid: "<<c<<endl;
+    return false;
+  }
+
+  //pdgid = pdgid/10;
+
+  //pdgid = abs(c)/10;
+
+}
+
+
 void histFiller( vector<TProfile*> &hists, double pt, double eTot, double piPlus,
   double piMinus, double pi0Gamma, double kaPlus, double kaMinus, double kSZero,
   double kLZero, double proton, double aproton, double neutron, double aneutron,
