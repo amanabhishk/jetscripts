@@ -107,6 +107,89 @@ double deltaR( double phi1, double phi2, double eta1, double eta2 ){
 }
 
 
+bool ischarge(const int& c)
+{
+  int pdgid = abs(c);//, digit, charge = 0;
+   //photon and neutrinos
+  if(pdgid == 22 || pdgid == 12 ||pdgid == 14 ||pdgid == 16 ) return false;
+  //charged leptons
+  else if(pdgid == 11 ||pdgid == 13 ||pdgid == 15 ) return true; 
+   //charged mesons
+  else if(pdgid == 211 || pdgid == 321 || pdgid == 411 || pdgid == 431 || pdgid == 213 || 
+          pdgid == 323 || pdgid == 521 || pdgid == 541) return true;
+  //neutral mesons
+  else if(pdgid == 311 || pdgid == 421 || pdgid == 111 || pdgid == 221 || pdgid == 331 || 
+          pdgid == 130 || pdgid == 310 || pdgid == 313 || pdgid == 113 || pdgid == 223 || 
+          pdgid == 333 || pdgid == 511 || pdgid == 531  || pdgid == 443|| pdgid == 100553) return false; 
+  //neutral baryons
+  else if(pdgid == 2112 || pdgid == 3122 || pdgid == 3212 || pdgid == 5122 
+          || pdgid == 5232 || pdgid == 4132 || pdgid == 3322) return false;
+  //charged baryons
+  else if(pdgid == 2212 || pdgid == 3112 || pdgid == 3222 || pdgid == 4122 
+          || pdgid == 3312 || pdgid == 5132  || pdgid == 4232|| pdgid == 5332) return true;
+  //No match!!
+  else
+  {
+    cout<<"ischarge: List exhausted!! Add this pdgid: "<<c<<endl;
+    return false;
+  }
+}
+
+bool pdgCharge(const int& c)
+{
+  int pdgid = abs(c), digit, charge = 0;
+   //photon and neutrinos
+  if(pdgid == 22 || pdgid == 12 ||pdgid == 14 ||pdgid == 16 ) return false;
+  //charged leptons
+  if(pdgid == 11 ||pdgid == 13 ||pdgid == 15 ) return true; 
+
+  pdgid = (pdgid/10)%1000;
+  if(pdgid < 100) //Meson
+  {
+    if((pdgid%10)%2 == 0) charge += 2;
+    else charge += -1;
+    
+    if((pdgid/10)%2 == 0) charge += -2;
+    else charge += 1;
+    
+    if(charge == 0) return false;
+    else return true;
+  }
+  else //Baryon
+  {
+    while(pdgid != 0)
+    {
+      digit = pdgid%10;
+      pdgid = pdgid/10;
+      if(digit%2 == 0) charge += 2;
+      else charge += -1;  
+    }
+    if(charge == 0) return false;
+    else return true; 
+  } 
+}
+
+bool isHadron(const int& c)
+{
+  if(abs(c)>99) return true;
+  else return false;
+}
+
+bool isMeson(const int& c)
+{
+  if(!isHadron(c))
+  {
+    cout<<"A non-hadron was tested. Abort.\n";
+    exit(0);
+  }
+  int pdgid = abs(c);
+  pdgid = (pdgid/10)%1000;
+  if(pdgid<100) return true;
+  else return false;
+}
+
+
+
 double pTD(const fastjet::PseudoJet& jet){
   
   double num = 0, den = 0;
@@ -123,7 +206,7 @@ double pTD(const fastjet::PseudoJet& jet){
   return num/den;
 }
 
-double sigma2(const fastjet::PseudoJet& jet){
+void sigma2(const fastjet::PseudoJet& jet, float* output){
 
   vector <fastjet::PseudoJet> jetParts = jet.constituents(); 
   double M11 = 0, M22 = 0, M12 = 0, M11_cut = 0, M22_cut = 0, M12_cut = 0;
@@ -139,9 +222,12 @@ double sigma2(const fastjet::PseudoJet& jet){
   eta = eta/pT2;
   phi = phi/pT2;
 
+  int id;
+
   for(unsigned int q = 0; q != jetParts.size(); ++q) 
   {
-    if(jetParts[q].pt()>1)
+    id = jetParts[q].user_index();
+    if((jetParts[q].pt()>1 && !pdgCharge(id) && isHadron(id)) || !isHadron(id))
     {
       M11_cut += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
       M22_cut += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);
@@ -173,28 +259,9 @@ double sigma2(const fastjet::PseudoJet& jet){
   TVectorD eigenval = me.GetEigenValues();
   TVectorD eigenval_cut = me_cut.GetEigenValues();
 
-  return pow(eigenval[1]/pT2,0.5);
-}
-
-bool ischarge(const int& c)
-{
-  int pdgid = abs(c);//, digit, charge = 0;
-  if(pdgid == 22 || pdgid == 12 ||pdgid == 14 ||pdgid == 16 ) return false; //photon and neutrinos
-  else if(pdgid == 11 ||pdgid == 13 ||pdgid == 15 ) return true; //charged leptons
-  else if(pdgid == 211 || pdgid == 321 || pdgid == 411 || pdgid == 431 || pdgid == 213 || pdgid == 323) return true; //charged mesons
-  else if(pdgid == 311 || pdgid == 421 || pdgid == 111 || pdgid == 221 || pdgid == 331 || pdgid == 130 || pdgid == 310 || pdgid == 313 || pdgid == 113 || pdgid == 223 || pdgid == 333) return false; //neutral mesons
-  else if(pdgid == 2112 || pdgid == 3122 || pdgid == 3212) return false;//neutral baryons
-  else if(pdgid == 2212 || pdgid == 3112 || pdgid == 3222) return true;//charged baryons
-  else
-  {
-    cout<<"ischarge: List exhausted!! Add this pdgid: "<<c<<endl;
-    return false;
-  }
-
-  //pdgid = pdgid/10;
-
-  //pdgid = abs(c)/10;
-
+  output[0] = pow(eigenval[1]/pT2,0.5);
+  output[1] = pow(eigenval_cut[1]/pT2,0.5);
+  //return pow(eigenval[1]/pT2,0.5);
 }
 
 
