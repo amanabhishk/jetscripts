@@ -135,7 +135,7 @@ bool ischarge(const int& c)
   }
 }
 
-bool pdgCharge(const int& c)
+bool isCharged(const int& c)
 {
   int pdgid = abs(c), digit, charge = 0;
    //photon and neutrinos
@@ -188,8 +188,6 @@ bool isMeson(const int& c)
   else return false;
 }
 
-
-
 double pTD(const fastjet::PseudoJet& jet){
   
   double num = 0, den = 0;
@@ -204,6 +202,53 @@ double pTD(const fastjet::PseudoJet& jet){
 
   num = pow(num, 0.5);
   return num/den;
+}
+
+void implicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::PseudoJet>& jet)
+{
+  int id;
+  for(unsigned int q = 0; q != jet_ref.size(); ++q) 
+  {
+    id = jet_ref[q].user_index();
+    if(isHadron(id))
+    {
+      if(isCharged(id) && jet_ref[q].pt() > 0.2) jet.push_back(jet_ref[q]);
+      if(!isCharged(id) && jet_ref[q].pt() > 3) jet.push_back(jet_ref[q]);
+    }
+    else jet.push_back(jet_ref[q]);
+  }  
+}
+
+void explicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::PseudoJet>& jet)
+{
+  int id;
+  for(unsigned int q = 0; q != jet_ref.size(); ++q) 
+  {
+    id = jet_ref[q].user_index();
+    if(id == 22 && jet_ref[q].pt() > 1) jet.push_back(jet_ref[q]);
+    else if(isHadron(id) && !isCharged(id) && jet_ref[q].pt() > 1) jet.push_back(jet_ref[q]);
+    else jet.push_back(jet_ref[q]);
+  }  
+}
+
+unsigned int multiplicity(const fastjet::PseudoJet& jet, unsigned char cut)
+{
+  if(cut = 0) return jet.constituents().size();
+  else if(cut = 1)
+  {
+    vector <fastjet::PseudoJet> jetParts(0);
+    explicit_cuts(jet.constituents(),jetParts);
+    return jetParts.size(); 
+  }
+  else if(cut == 2)
+  {
+    vector <fastjet::PseudoJet> jetParts(0);
+    vector <fastjet::PseudoJet> jetParts2(0);
+    explicit_cuts(jet.constituents(), jetParts);
+    implicit_cuts(jetParts,jetParts2);
+    return jetParts2.size();
+  }
+  
 }
 
 void sigma2(const fastjet::PseudoJet& jet, float* output){
@@ -227,12 +272,13 @@ void sigma2(const fastjet::PseudoJet& jet, float* output){
   for(unsigned int q = 0; q != jetParts.size(); ++q) 
   {
     id = jetParts[q].user_index();
-    if((jetParts[q].pt()>1 && !pdgCharge(id) && isHadron(id)) || !isHadron(id))
+    if((jetParts[q].pt()>1 && !isCharged(id) && isHadron(id)) || !isHadron(id) || (isHadron(id) && isCharged(id)))
     {
       M11_cut += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
       M22_cut += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);
       M12_cut += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),eta)*deltaPhi(jetParts[q].phi(),phi);          
     }
+    //else cout<<id<<endl;
 
     M11 += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
     M22 += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);

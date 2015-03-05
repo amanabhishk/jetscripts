@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 
   // unsigned int limit = 20;
   float Jw, JpT, JpTD, Jsigma2[] = {0,0};
-  unsigned int Jmul;
+  unsigned int Jmul[] = {0,0};
   unsigned char Jflavor;
 
   TTree* tree = new TTree("tree","tree");
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
   tree->Branch("jet_pT", &JpT , "jet_pT/F" );
   tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
   tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
-  tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
+  tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
   tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
   
   TLorentzVector v,v1,v2;       //for converting to cartesian coordinates
@@ -174,12 +174,22 @@ int main(int argc, char* argv[])
     sortedJets = sorted_by_pt(unsortedJets);
 
     jetMultiplicity->Fill(sortedJets.size());
-    //jet_multiplicity = sortedJets.size();
     if(sortedJets.size()==0)  continue;
 
-    // cout<<"Checkpoint2\n";
+    // Checking sufficient resolution
     if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
     if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
+
+    //the pT of the muons are required to be greater than 20 and 10 GeV, respectively
+    if(!((pT[leptonList[0]]>20 && pT[leptonList[1]]>10) || (pT[leptonList[1]]>20 && pT[leptonList[0]]>10))) continue;
+
+    //the subleading jet in the event is required to have a pT smaller than 30% of that of the dimuon system.
+    v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
+    v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
+    if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
+
+    //the dimuon invariant mass is required to fall in the 70-110 GeV range
+    if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) continue;
 
     unsigned short int jetFlavor = 0;
 
@@ -189,11 +199,7 @@ int main(int argc, char* argv[])
     assert(parton != -1);
     //match with status 23 particles and assign flavor to leading jet only
     double dR = deltaR( phi[parton], sortedJets[0].phi(), eta[parton],sortedJets[0].eta());
-    // cout<<eta[parton]<<" "<<phi[parton]<<endl;
-    // cout<<sortedJets[0].eta()<<" "<<sortedJets[0].phi() <<endl;
-    // cout<<dR<<endl<<endl;
 
-    // cout<<"Checkpoint3\n";
     if ( dR < R ) 
     {  
       jetFlavor = abs(id[parton]);
@@ -203,7 +209,8 @@ int main(int argc, char* argv[])
     
     Jw = weight;
     JpT = sortedJets[0].pt();
-    Jmul = sortedJets[0].constituents().size();
+    Jmul[0] = multiplicity(sortedJets[0],2);
+    Jmul[1] = multiplicity(sortedJets[0],1);
     Jflavor = jetFlavor;
     JpTD = pTD(sortedJets[0]);
     sigma2(sortedJets[0],Jsigma2);
