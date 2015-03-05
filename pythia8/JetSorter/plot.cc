@@ -26,7 +26,7 @@ void plot()
 	cout<<N<<" jets in total."<<endl;
 	
 	float pT, weight, pTD, sigma2[2];
-	unsigned int constituents;
+	unsigned int constituents[2];
 	unsigned char flavor;
 	
 	tree->SetBranchAddress("jet_pT",&pT);
@@ -34,7 +34,7 @@ void plot()
 	tree->SetBranchAddress("jet_pTD",&pTD);
 	tree->SetBranchAddress("jet_flavor",&flavor);
 	tree->SetBranchAddress("jet_weight",&weight);
-	tree->SetBranchAddress("jet_multiplicity",&constituents);
+	tree->SetBranchAddress("jet_multiplicity",constituents);
 	
 	TProfile gluonFrac("g","g",ptBins,ptRange);
   	TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
@@ -51,6 +51,15 @@ void plot()
 	multiplicity_g->SetLineColor(kRed);
 	multiplicity_u->SetLineColor(kGreen);
 	
+	TH1D* multiplicity_g_cut = new TH1D("multiplicity_g_cut","multiplicity_g_cut",60,0,60);
+	TH1D* multiplicity_q_cut = new TH1D("multiplicity_q_cut","multiplicity_q_cut",60,0,60);
+	TH1D* multiplicity_u_cut = new TH1D("multiplicity_u_cut","multiplicity_u_cut",60,0,60);
+	multiplicity_q_cut->Sumw2();
+	multiplicity_g_cut->Sumw2();
+	multiplicity_u_cut->Sumw2();
+	multiplicity_g_cut->SetLineColor(kRed);
+	multiplicity_u_cut->SetLineColor(kGreen);
+
 
 	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",100,0,1);
 	TH1D* pTD_q = new TH1D("pTD_q","pTD_q",100,0,1);
@@ -93,21 +102,24 @@ void plot()
 		if(pT>100 || pT<80) continue;
 		if(flavor == 21) 
 		{
-			multiplicity_g->Fill(constituents,weight);
+			multiplicity_g->Fill(constituents[0],weight);
+			multiplicity_g_cut->Fill(constituents[1],weight);
 			pTD_g->Fill(pTD,weight);
 			sigma2_g->Fill(sigma2[0],weight);
 			sigma2_g_cut->Fill(sigma2[1],weight);
 		}
 		else if(flavor == 0) 
 		{
-			multiplicity_u->Fill(constituents,weight);
+			multiplicity_u->Fill(constituents[0],weight);
+			multiplicity_u_cut->Fill(constituents[1],weight);
 			pTD_u->Fill(pTD,weight);
 			sigma2_u->Fill(sigma2[0],weight);
 			sigma2_u_cut->Fill(sigma2[1],weight);	
 		}
 		else 
 		{
-			multiplicity_q->Fill(constituents,weight);
+			multiplicity_q->Fill(constituents[0],weight);
+			multiplicity_q_cut->Fill(constituents[1],weight);
 			pTD_q->Fill(pTD,weight);
 			sigma2_q->Fill(sigma2[0],weight);	
 			sigma2_q_cut->Fill(sigma2[1],weight);	
@@ -178,7 +190,7 @@ void plot()
 
 	TH1D *h4 = new TH1D("h4",";Number of constituents;Events",60,0,60);
 	h4->SetMinimum(0);
-	h4->SetMaximum(0.09);
+	h4->SetMaximum(0.05);
 	h4->GetYaxis()->SetNoExponent();
 	h4->GetXaxis()->SetNoExponent();
 	h4->GetXaxis()->SetRangeUser(0,60);
@@ -207,6 +219,46 @@ void plot()
 	gm->Scale(1/gm->Integral());
 	um->Scale(1/um->Integral());
 	qm->Scale(1/qm->Integral());	
+	
+	/*****************Constituents with CUT*****************/
+
+	//STACKED
+	setTDRStyle();
+	TH1F *um_cut = (TH1F*)multiplicity_u_cut->Clone("um_cut");
+	TH1F *gm_cut = (TH1F*)multiplicity_g_cut->Clone("gm_cut");
+	TH1F *qm_cut = (TH1F*)multiplicity_q_cut->Clone("qm_cut");
+
+	TH1D *h10 = new TH1D("h10",";Number of constituents(with cut);Events",60,0,60);
+	h10->SetMinimum(0);
+	h10->SetMaximum(0.05);
+	h10->GetYaxis()->SetNoExponent();
+	h10->GetXaxis()->SetNoExponent();
+	h10->GetXaxis()->SetRangeUser(0,60);
+	multiplicity_g_cut->Add(multiplicity_u_cut);
+	multiplicity_q_cut->Add(multiplicity_g_cut);
+
+	TCanvas *c10 = tdrCanvas("c10",h10,0,33);
+	tdrDraw(multiplicity_g_cut,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(multiplicity_u_cut,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(multiplicity_q_cut,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+
+
+	//SEPARATE
+	setTDRStyle();
+	TH1D *h11 = new TH1D("h11",";Number of constituents(with cut);Events",60,0,60);
+	h11->SetMinimum(0);
+	h11->SetMaximum(0.08);
+	h11->GetYaxis()->SetNoExponent();
+	h11->GetXaxis()->SetNoExponent();
+	h11->GetXaxis()->SetRangeUser(0,60);
+
+	TCanvas *c11 = tdrCanvas("c11",h11,0,33);
+	tdrDraw(gm_cut,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(um_cut,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
+	tdrDraw(qm_cut,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	gm_cut->Scale(1/gm_cut->Integral());
+	um_cut->Scale(1/um_cut->Integral());
+	qm_cut->Scale(1/qm_cut->Integral());	
 		
 	/****************pTD****************/
 
@@ -217,7 +269,7 @@ void plot()
 	TH1F *qD = (TH1F*)pTD_q->Clone("qD");
 
 	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",100,0,1);
-	h2->SetMaximum(0.09);
+	h2->SetMaximum(0.05);
 	h2->GetYaxis()->SetNoExponent();
 	h2->GetXaxis()->SetNoExponent();
 	h2->GetXaxis()->SetRangeUser(0,30);
@@ -233,7 +285,7 @@ void plot()
 	//SEPARATE
 	setTDRStyle();
 	TH1D *h5 = new TH1D("h5",";p_{T}D;Events",100,0,1);
-	h5->SetMaximum(0.09);
+	h5->SetMaximum(0.05);
 	h5->GetYaxis()->SetNoExponent();
 	h5->GetXaxis()->SetNoExponent();
 	h5->GetXaxis()->SetRangeUser(0,30);
@@ -256,7 +308,7 @@ void plot()
 
 	TH1D *h6 = new TH1D("h6",";#sigma_{2};Events",100,0,0.2);
 	h6->SetMinimum(0);
-	h6->SetMaximum(0.1);
+	h6->SetMaximum(0.06);
 	h6->GetYaxis()->SetNoExponent();
 	h6->GetXaxis()->SetNoExponent();
 	h6->GetXaxis()->SetRangeUser(0,0.2);
@@ -273,7 +325,7 @@ void plot()
 	setTDRStyle();
 	TH1D *h3 = new TH1D("h3",";#sigma_{2};Events",100,0,0.2);
 	h3->SetMinimum(0);
-	h3->SetMaximum(0.1);
+	h3->SetMaximum(0.06);
 	h3->GetYaxis()->SetNoExponent();
 	h3->GetXaxis()->SetNoExponent();
 	h3->GetXaxis()->SetRangeUser(0,0.2);
@@ -296,7 +348,7 @@ void plot()
 
 	TH1D *h8 = new TH1D("h8",";#sigma_{2}(with cut);Events",100,0,0.2);
 	h8->SetMinimum(0);
-	h8->SetMaximum(0.1);
+	h8->SetMaximum(0.06);
 	h8->GetYaxis()->SetNoExponent();
 	h8->GetXaxis()->SetNoExponent();
 	h8->GetXaxis()->SetRangeUser(0,0.2);
@@ -313,7 +365,7 @@ void plot()
 	setTDRStyle();
 	TH1D *h9 = new TH1D("h9",";#sigma_{2}(with cut);Events",100,0,0.2);
 	h9->SetMinimum(0);
-	h9->SetMaximum(0.1);
+	h9->SetMaximum(0.06);
 	h9->GetYaxis()->SetNoExponent();
 	h9->GetXaxis()->SetNoExponent();
 	h9->GetXaxis()->SetRangeUser(0,0.2);
