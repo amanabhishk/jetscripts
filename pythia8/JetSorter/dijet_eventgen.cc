@@ -54,16 +54,13 @@ int main(int argc, char* argv[])
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
-  //Info& info = pythia.info;
   pythia.readFile("pythia_dijet.cmnd");
   pythia.init();
-  pythia.settings.listChanged();
 
   std::stringstream outputFilename("");
   outputFilename << nEvent <<"events_dijet.root";
 
-  //ROOT TTree setup  
-  TFile outFile(outputFilename.str().c_str(), "NEW"); //output file. change the name in physicsDef.cc too
+  TFile outFile(outputFilename.str().c_str(), "NEW");
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
@@ -95,7 +92,6 @@ int main(int argc, char* argv[])
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
-      //state = abs(event[t].status());      
       
       if(event[t].status() == -23) 
       {
@@ -123,10 +119,8 @@ int main(int argc, char* argv[])
   
   }
 
-  tree->Print();
   tree->AutoSave("Overwrite"); 
   outFile.Close();
-  cout<<"Done.\n";
   cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }

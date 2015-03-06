@@ -53,16 +53,13 @@ int main(int argc, char* argv[])
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
-  //Info& info = pythia.info;
   pythia.readFile("pythia_gammajet.cmnd");
   pythia.init();
-  pythia.settings.listChanged();
 
   std::stringstream outputFilename("");
   outputFilename << nEvent <<"events_gammaJet.root";
 
-  //ROOT TTree setup  
-  TFile outFile(outputFilename.str().c_str(), "RECREATE"); //output file. change the name in physicsDef.cc too
+  TFile outFile(outputFilename.str().c_str(), "NEW");
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
@@ -82,26 +79,14 @@ int main(int argc, char* argv[])
   tree->Branch("phi", phi, "phi[n]/F");
   tree->Branch("m", m, "m[n]/F");
 
-  //TH1D* type = new TH1D("type","type",26,0,26);
-  
-  // Float_t rad;
-  // tree->Branch("rad", &rad, "rad/F");
-  // TH1D * fsr = new TH1D("fsr","fsr",300,0,1.5);
- 
-  //int count;//, temp,  index;// identity;// simple, complex;
-  // Float_t num, den;
   int count, gammaIndex = -1;
   bool skip;
 
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
-    // makeTree(event);
     skip = false;
     if (!pythia.next()) continue;
-    // cout<<"----------\n";
-
-    //leptonListFinal.resize(0);
     weight = pythia.info.weight();
     count = -1;
 
@@ -114,31 +99,17 @@ int main(int argc, char* argv[])
       }
     }
 
-    assert(gammaIndex != -1);
+    //assert(gammaIndex != -1);
 
-    while(!event[gammaIndex].isFinal())
-    {
+    while(!event[gammaIndex].isFinal()) //find exclude all the complicated cases with pair production
+    {                                   
       if(event[gammaIndex].daughter1() != event[gammaIndex].daughter2()) 
       {
-        if(abs(event[event[gammaIndex].daughter1()].id()) != 11)
-        {
-          //++complex;
-          skip = true;
-          //cout<<"--------------------------------\n";
-          //cout << "Exception: "<<gammaIndex<<endl;
-          //cout<<"--------------------------------\n";
-        }
-        
-        if(abs(event[event[gammaIndex].daughter1()].id()) == 11) 
-        {
-          //++simple;
-          skip = true;
-        }
+        skip = true;
         break;
       }
       
       else gammaIndex = event[gammaIndex].daughter1();
-      //cout<<gammaIndex<<endl;
     }
 
     if(skip) continue;
@@ -155,9 +126,6 @@ int main(int argc, char* argv[])
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
-      //state = event[t].status();
-      //identity = abs(event[t].id());
-
       if(event[t].isFinal())
       {
         if(t != gammaIndex)
@@ -172,7 +140,6 @@ int main(int argc, char* argv[])
       {
         ++count;
         status[count] = 3;
-        //type->Fill(identity);
       }
 
       else continue;
@@ -186,18 +153,10 @@ int main(int argc, char* argv[])
 
     n = UShort_t(count+1);
     tree->Fill();
-    // fsr->Fill(num/den);
   }
 
-  // fsr->Write();
-
-  // tree->Print();
-  //cout<<simple<<" "<<complex<<endl;
-  //type->Write();
   tree->AutoSave("Overwrite");
   outFile.Close();
-  // makeTree();
-  // cout<<"Done.\n";
   cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }
