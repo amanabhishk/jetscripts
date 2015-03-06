@@ -22,7 +22,13 @@ all:
 jetsorter: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
-physicsDef: $$@.cc $(PYTHIALIB)
+Zjet_analysis: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+gammajet_analysis: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+dijet_analysis: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
 physicsDef_plot: $$@.cc $(PYTHIALIB)
