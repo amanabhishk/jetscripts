@@ -215,8 +215,8 @@ int main(int argc, char* argv[])
       
       Jw = weight;
       JpT = sortedJets[0].pt();
-      Jmul[0] = multiplicity(sortedJets[0],2);
-      Jmul[1] = multiplicity(sortedJets[0],1);
+      Jmul[0] = multiplicity(sortedJets[0],0);
+      Jmul[1] = multiplicity(sortedJets[0],2);
       Jflavor = jetFlavor[0];
       JpTD = pTD(sortedJets[0]);
       sigma2(sortedJets[0],Jsigma2);
