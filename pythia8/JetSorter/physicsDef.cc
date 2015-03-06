@@ -112,16 +112,16 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
 
-  float Jw, JpT, JpTD, Jsigma2;
-  unsigned int Jmul;
+  float Jw, JpT, JpTD, Jsigma2[]={0,0};
+  unsigned int Jmul[]={0,0};
   unsigned char Jflavor;
 
   TTree* tree = new TTree("tree","tree");
   tree->Branch("jet_weight", &Jw , "jet_weight/F" );
   tree->Branch("jet_pT", &JpT , "jet_pT/F" );
   tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
-  tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
-  tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
+  tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
+  tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
   tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
 
 
@@ -214,11 +214,12 @@ int main(int argc, char* argv[])
       if(sortedJets[k].eta() > etaMax) continue;
       
       Jw = weight;
-      JpT = sortedJets[k].pt();
-      Jmul = sortedJets[k].constituents().size();
-      Jflavor = jetFlavor[k];
-      JpTD = pTD(sortedJets[k]);
-      Jsigma2 = sigma2(sortedJets[k]);
+      JpT = sortedJets[0].pt();
+      Jmul[0] = multiplicity(sortedJets[0],2);
+      Jmul[1] = multiplicity(sortedJets[0],1);
+      Jflavor = jetFlavor[0];
+      JpTD = pTD(sortedJets[0]);
+      sigma2(sortedJets[0],Jsigma2);
       tree->Fill();
 
       gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0, weight);
