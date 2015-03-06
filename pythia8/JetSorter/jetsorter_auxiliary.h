@@ -212,7 +212,7 @@ void implicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::Ps
     id = jet_ref[q].user_index();
     if(isHadron(id))
     {
-      if(isCharged(id) && jet_ref[q].pt() > 0.2) jet.push_back(jet_ref[q]);
+      if(isCharged(id) && jet_ref[q].pt() > 0.3) jet.push_back(jet_ref[q]);
       else if(!isCharged(id) && jet_ref[q].pt() > 3) jet.push_back(jet_ref[q]);
       else continue;
     }
