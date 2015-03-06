@@ -19,7 +19,7 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("o_Zjet.root","READ");
+	TFile *f = new TFile("o_dijet.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -38,6 +38,7 @@ void plot()
 	
 	TProfile gluonFrac("g","g",ptBins,ptRange);
   	TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
+  	TProfile strangeFrac("s","s",ptBins,ptRange);
   	TProfile charmFrac("c","c",ptBins,ptRange);
   	TProfile bottomFrac("b","b",ptBins,ptRange);
   	TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
@@ -94,7 +95,8 @@ void plot()
 		tree->GetEntry(x);
 		
 		gluonFrac.Fill(pT, (flavor == 21)? 1:0, weight);
-    	lightquarkFrac.Fill(pT, (flavor == 1 || flavor == 2 || flavor == 3)? 1:0, weight);
+    	lightquarkFrac.Fill(pT, (flavor == 1 || flavor == 2)? 1:0, weight);
+    	strangeFrac.Fill(pT, (flavor == 3)? 1:0, weight);
     	charmFrac.Fill(pT, (flavor == 4)? 1:0, weight);
     	bottomFrac.Fill(pT, (flavor == 5)? 1:0, weight);
     	unmatchedFrac.Fill(pT, (flavor == 0)? 1:0, weight);
@@ -128,6 +130,7 @@ void plot()
 
 	TH1D *light_quarks = lightquarkFrac.ProjectionX("light quarks","");
   	TH1D *gluons = gluonFrac.ProjectionX("gluons","");
+  	TH1D *strange = strangeFrac.ProjectionX("strange","");
   	TH1D *charm = charmFrac.ProjectionX("charm","");
   	TH1D *bottom = bottomFrac.ProjectionX("bottom","");
   	TH1D *unmatched = unmatchedFrac.ProjectionX("unmatched","");
@@ -135,9 +138,10 @@ void plot()
   	TH1D *h = new TH1D("h",";p_{T} (GeV);Fraction",1000,20,2000);
 
 	tdrDraw(unmatched,"",kOpenCircle,kGray+2,kSolid,-1,1001,kGray);
-	gStyle->SetOptStat(kFALSE);
+	gStyle->SetOptStat(kFALSE); //removes old legend
 	tdrDraw(gluons,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
 	tdrDraw(light_quarks,"",kFullCircle,kGreen-1,kSolid,-1,1001,kYellow-9);
+	tdrDraw(strange,"",kFullCircle,kAzure-6,kSolid,-1,1001,kAzure-8);
 	tdrDraw(charm,"",kFullCircle,kGreen-1,kSolid,-1,1001,kGreen-9);
 	tdrDraw(bottom,"",kFullCircle,kRed-2,kSolid,-1,1001,kRed-9);
 
@@ -145,8 +149,10 @@ void plot()
 
 	TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
 
+	//light_quarks->Add(strange);
 	hs->Add(bottom);
 	hs->Add(charm);
+	hs->Add(strange);
 	hs->Add(light_quarks);
 	hs->Add(gluons);
 	hs->Add(unmatched);
@@ -162,7 +168,7 @@ void plot()
 	// hs->SetLogx();
 
 
-	TLegend *leg = new TLegend(0.175,0.50,0.5,0.78);
+	TLegend *leg = new TLegend(0.175,0.50,0.5,0.82);
 
 
 	leg->SetFillStyle(kNone);
@@ -172,6 +178,7 @@ void plot()
 	
 	leg->AddEntry(bottom,"Bottom","f");
 	leg->AddEntry(charm,"Charm","f");
+	leg->AddEntry(strange,"Strange","f");
 	leg->AddEntry(light_quarks,"Light","f");
 	leg->AddEntry(gluons,"Gluon","f");
 	leg->AddEntry(unmatched,"None","f");
