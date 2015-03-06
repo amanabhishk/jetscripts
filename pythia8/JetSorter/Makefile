@@ -28,7 +28,13 @@ physicsDef: $$@.cc $(PYTHIALIB)
 physicsDef_plot: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
-eventTTree: $$@.cc $(PYTHIALIB)
+Zjet_eventgen: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+gammajet_eventgen: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+dijet_eventgen: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
 readtree: $$@.cc $(PYTHIALIB)

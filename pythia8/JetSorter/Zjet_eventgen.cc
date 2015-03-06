@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   Pythia pythia;
   Event& event = pythia.event;
   //Info& info = pythia.info;
-  pythia.readFile("pythiaSettings.cmnd");
+  pythia.readFile("pythia_Zjet.cmnd");
   pythia.init();
   pythia.settings.listChanged();
 
