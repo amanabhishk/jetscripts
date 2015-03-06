@@ -213,7 +213,8 @@ void implicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::Ps
     if(isHadron(id))
     {
       if(isCharged(id) && jet_ref[q].pt() > 0.2) jet.push_back(jet_ref[q]);
-      if(!isCharged(id) && jet_ref[q].pt() > 3) jet.push_back(jet_ref[q]);
+      else if(!isCharged(id) && jet_ref[q].pt() > 3) jet.push_back(jet_ref[q]);
+      else continue;
     }
     else jet.push_back(jet_ref[q]);
   }  
@@ -225,8 +226,8 @@ void explicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::Ps
   for(unsigned int q = 0; q != jet_ref.size(); ++q) 
   {
     id = jet_ref[q].user_index();
-    if(id == 22 && jet_ref[q].pt() > 1) jet.push_back(jet_ref[q]);
-    else if(isHadron(id) && !isCharged(id) && jet_ref[q].pt() > 1) jet.push_back(jet_ref[q]);
+    if(id == 22 && jet_ref[q].pt() < 1) continue;
+    else if(isHadron(id) && !isCharged(id) && jet_ref[q].pt() < 1) continue;
     else jet.push_back(jet_ref[q]);
   }  
 }
