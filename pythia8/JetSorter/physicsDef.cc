@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
   TFile *f = new TFile(options[1]);              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
-  TFile outFile(options[2], "NEW");    //output file 
+  TFile outFile(options[2], "RECREATE");    //output file 
 
   //Extracting information from the TTree
   unsigned int nEvent = (unsigned int)Events->GetEntries(); 
@@ -111,16 +111,16 @@ int main(int argc, char* argv[])
 
   // unsigned int limit = 20;
 
-  float Jw, JpT, JpTD, Jsigma2;
-  unsigned int Jmul;
+  float Jw, JpT, JpTD, Jsigma2[]={0,0};
+  unsigned int Jmul[]={0,0};
   unsigned char Jflavor;
 
   TTree* tree = new TTree("tree","tree");
   tree->Branch("jet_weight", &Jw , "jet_weight/F" );
   tree->Branch("jet_pT", &JpT , "jet_pT/F" );
   tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
-  tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
-  tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
+  tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
+  tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
   tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
 
   TLorentzVector v;//,v1,v2;       //for converting to cartesian coordinates
@@ -208,11 +208,12 @@ int main(int argc, char* argv[])
 
     Jw = weight;
     JpT = sortedJets[0].pt();
-    Jmul = sortedJets[0].constituents().size();
+    Jmul[0] = multiplicity(sortedJets[0],2);
+    Jmul[1] = multiplicity(sortedJets[0],1);
     Jflavor = jetFlavor;
     JpTD = pTD(sortedJets[0]);
-    Jsigma2 = sigma2(sortedJets[0]);
-    tree->Fill();    
+    sigma2(sortedJets[0],Jsigma2);
+    tree->Fill();
 
     gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
     lightquarkFrac.Fill(sortedJets[0].pt(), (jetFlavor == 1 || jetFlavor == 2 || jetFlavor == 3)? 1:0, weight);
