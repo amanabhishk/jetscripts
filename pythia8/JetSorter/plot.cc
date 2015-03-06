@@ -19,7 +19,7 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("o_dijet.root","READ");
+	TFile *f = new TFile("o_gammajet.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -168,12 +168,24 @@ void plot()
 	// hs->SetLogx();
 
 
-	TLegend *leg = new TLegend(0.175,0.50,0.5,0.82);
+	TLegend *leg = tdrLeg(0.5,0.82,0.175,0.50,0.035);
+	TLegend *heading = tdrLeg(0.675,0.50,0.775,0.82);
+	TLegend *sample = tdrLeg(0.675,0.50,0.775,0.82,0.03);
+	TLegend *alphacut = tdrLeg(0.675,0.50,0.775,0.82,0.03);
+	TLegend *etacut = tdrLeg(0.675,0.50,0.775,0.82,0.03);
 
+	sample->SetHeader("#gamma+jet sample");
+	heading->SetHeader("Pythia8 Simulation (4C Tune)");
+	alphacut->SetHeader("#alpha>0.3");
+	etacut->SetHeader("#left|#eta#right|< 1.3");
 
-	leg->SetFillStyle(kNone);
-	leg->SetBorderSize(0);
- 	leg->SetTextSize(0.045);
+	// leg->SetFillStyle(kNone);
+	// leg->SetBorderSize(0);
+ // 	leg->SetTextSize(0.045);
+
+ // 	heading->SetFillStyle(kNone);
+	// heading->SetBorderSize(0);
+ // 	heading->SetTextSize(0.045);
 
 	
 	leg->AddEntry(bottom,"Bottom","f");
@@ -183,7 +195,13 @@ void plot()
 	leg->AddEntry(gluons,"Gluon","f");
 	leg->AddEntry(unmatched,"None","f");
 	
+	//heading->AddEntry()
+
 	leg->Draw();
+	heading->Draw();
+	sample->Draw();
+	alphacut->Draw();
+	etacut->Draw();
 	
 	gPad->SetLogx();
 	
