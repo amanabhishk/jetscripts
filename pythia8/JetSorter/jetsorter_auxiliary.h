@@ -234,8 +234,8 @@ void explicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::Ps
 
 unsigned int multiplicity(const fastjet::PseudoJet& jet, unsigned char cut)
 {
-  if(cut = 0) return jet.constituents().size();
-  else if(cut = 1)
+  if(cut == 0) return jet.constituents().size();
+  else if(cut == 1)
   {
     vector <fastjet::PseudoJet> jetParts(0);
     explicit_cuts(jet.constituents(),jetParts);
