@@ -182,6 +182,7 @@ int main(int argc, char* argv[])
     //jet_multiplicity = sortedJets.size();
     if(sortedJets.size()==0)  continue;
 
+    if(sortedJets[1].pt()>0.3*pT[gamma]) continue;
     // cout<<"Checkpoint2\n";
     if(deltaR(phi[gamma],sortedJets[0].phi(),eta[gamma],sortedJets[0].eta()) < R) continue;
     //if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
