@@ -162,22 +162,25 @@ void plot()
 	hs->GetXaxis()->SetNoExponent();
 	// hs->GetXaxis()->SetNoExponent(kTRUE);
 	hs->GetXaxis()->SetRange(9,47);
-	hs->GetXaxis()->SetNdivisions(5,kTRUE);
+	hs->GetXaxis()->SetMoreLogLabels(kTRUE);
+	//hs->GetXaxis()->SetNdivisions(5,kTRUE);
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Flavor fraction");
 	// hs->SetLogx();
 
-
-	TLegend *leg = tdrLeg(0.5,0.82,0.175,0.50,0.035);
-	TLegend *heading = tdrLeg(0.675,0.50,0.775,0.82);
-	TLegend *sample = tdrLeg(0.675,0.50,0.775,0.82,0.03);
-	TLegend *alphacut = tdrLeg(0.675,0.50,0.775,0.82,0.03);
-	TLegend *etacut = tdrLeg(0.675,0.50,0.775,0.82,0.03);
+	double x0, y0;
+	x0 = -0.3;
+	y0 = 0.44;
+	TLegend *leg = tdrLeg(0.5,0.82,0.175,0.50);
+	TLegend *heading = tdrLeg(0.675-0.3,0.50+0.44,0.775-0.3,0.505+0.44);
+	TLegend *sample = tdrLeg(0.675-0.05,0.50+0.05,0.775-0.05,0.505+0.05);
+	TLegend *alphacut = tdrLeg(0.77,0.50,0.87,0.505);
+	TLegend *etacut = tdrLeg(0.61,0.50,0.71,0.505);
 
 	sample->SetHeader("#gamma+jet sample");
 	heading->SetHeader("Pythia8 Simulation (4C Tune)");
-	alphacut->SetHeader("#alpha>0.3");
-	etacut->SetHeader("#left|#eta#right|< 1.3");
+	alphacut->SetHeader("#alpha<0.3");
+	etacut->SetHeader("#left|#eta#right|< 1.3,");
 
 	// leg->SetFillStyle(kNone);
 	// leg->SetBorderSize(0);
