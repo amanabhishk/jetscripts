@@ -124,8 +124,6 @@ int main(int argc, char* argv[])
   tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
   tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
 
-
-  double num, den;
   TLorentzVector v;       //for converting to cartesian coordinates
 
   /**************************************END OF SET-UP**************************************/
