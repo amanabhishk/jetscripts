@@ -49,12 +49,15 @@ int main(int argc, char* argv[])
   std::clock_t start = std::clock();
 
   char* options[argc];
-  if(argc != 3)
+  if(argc != 4)
   {
-    cout<<"Incorrect number of arguments. Correct input is:\n $ ./physicsDef.exe [inputfile.root] [outputfile.root]\n";
+    cout<<"Incorrect number of arguments. Correct input is:\n" ;
+    cout<<"$ ./physicsDef.exe [inputfile.root] [outputfile.root] [algorithm 1(physics definition), 2(hadron based definition)]\n";
     exit(0);
   }
   for(unsigned short int t = 0; t < argc ; ++t) options[t] = argv[t];
+
+  unsigned short int  algo = atoi(options[3]);
 
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
@@ -76,20 +79,10 @@ int main(int argc, char* argv[])
   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
-  // Book histograms
-  TProfile gluonFrac("g","g",ptBins,ptRange);
-  TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
-  TProfile charmFrac("c","c",ptBins,ptRange);
-  TProfile bottomFrac("b","b",ptBins,ptRange);
-  TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
-  TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
-
-
-  //std::stringstream inputFilename("");
-  //inputFilename << argv[1];
-  //cout<<options[1]<<endl;
   TFile *f = new TFile(options[1]);              //input file with events
+  assert(f && !f->IsZombie());
   TTree *Events = (TTree*)f->Get("Events");
+  assert(Events && !Events->IsZombie());
   
   TFile outFile(options[2], "RECREATE");    //output file 
 
@@ -127,124 +120,111 @@ int main(int argc, char* argv[])
   TLorentzVector v;       //for converting to cartesian coordinates
 
   /**************************************END OF SET-UP**************************************/
-  cout<<"Progress:\n";
-  for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
+  if(algo == 1)
   {
-    
-    if(100*iEvent == 25*nEvent) cout<< "25%\n";
-    if(100*iEvent == 50*nEvent) cout<< "50%\n";
-    if(100*iEvent == 75*nEvent) cout<< "75%\n";
-    if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
-
-    Events->GetEntry(iEvent);
-
-    fjInputs.resize(0);
-    vector<int> partonList; //pick out status 23 particles
-
-    //select relevant events and make partonList and fjInputs vectors
-    for (unsigned int i = 0; i != eventParticleCount; ++i) 
+    cout<<"Using physics definition.\n";
+    cout<<"Progress:\n";
+    for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
     {
-      if( status[i] == 3 ) partonList.push_back(i);
-      if ( status[i] == 1 ) 
-      {   
-        v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
-        fastjet::PseudoJet particleTemp = v;
-        fjInputs.push_back( particleTemp );
-      }
-    }//Event selector loop
-  
-    if (fjInputs.size() == 0) continue;
-    assert(partonList.size() == 2);
-    //clustering using fastjet
-    vector <fastjet::PseudoJet> unsortedJets, sortedJets;
-    fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
-
-    unsortedJets = jetCluster.inclusive_jets( pTMin );
-    sortedJets = sorted_by_pt(unsortedJets);
-
-    //selecting good dijet events
-    if(sortedJets.size()<2) dijetCriteria = false;
-    else if(sortedJets.size()>2)
-    {
-     dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
-    }
-    else
-    {
-     dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
-    }
-    
-    if(!dijetCriteria) continue;
-
-    vector <int> jetFlavor(sortedJets.size(),0);
-
-    cout << std::setprecision(10);
-
-    count = 0;
-    
-    //flavor tagging begins
-    for (unsigned int i = 0; i != sortedJets.size(); ++i) 
-    {      
-      //if(pTD(sortedJets) != sortedJets.size()) cout<< "NO.\n";
-      vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
-      if ( jetParts.size() == 1 ) continue;
       
-      //match with status 23 particles and assign flavor to (2) leading jets
-      for(unsigned int k = 0; k != partonList.size(); ++k)  
+      if(100*iEvent == 25*nEvent) cout<< "25%\n";
+      if(100*iEvent == 50*nEvent) cout<< "50%\n";
+      if(100*iEvent == 75*nEvent) cout<< "75%\n";
+      if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
+
+      Events->GetEntry(iEvent);
+
+      fjInputs.resize(0);
+      vector<int> partonList; //pick out status 23 particles
+
+      //select relevant events and make partonList and fjInputs vectors
+      for (unsigned int i = 0; i != eventParticleCount; ++i) 
       {
-
-        double dR = deltaR( phi[partonList[k]], sortedJets[i].phi(), eta[partonList[k]],sortedJets[i].eta());
-        if ( dR < R ) 
-        {
-          count += 1;
-          // taggedJets-break1);
-          assert(jetFlavor[i]==0);     
-          jetFlavor[i] = abs(id[partonList[k]]);
+        if( status[i] == 3 ) partonList.push_back(i);
+        if ( status[i] == 1 ) 
+        {   
+          v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
+          fastjet::PseudoJet particleTemp = v;
+          fjInputs.push_back( particleTemp );
         }
-      }//tag tagging loop
-    }//Loop over leading jets
+      }//Event selector loop
     
-    taggedJets->Fill(count);
+      if (fjInputs.size() == 0) continue;
+      assert(partonList.size() == 2);
+      //clustering using fastjet
+      vector <fastjet::PseudoJet> unsortedJets, sortedJets;
+      fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
 
-    //fill histograms
-    for(int k = 0; k != jetFlavor.size(); ++k)
-    {
-      if(k == partonList.size()) break;
-      if(sortedJets[k].eta() > etaMax) continue;
+      unsortedJets = jetCluster.inclusive_jets( pTMin );
+      sortedJets = sorted_by_pt(unsortedJets);
+
+      //selecting good dijet events
+      if(sortedJets.size()<2) dijetCriteria = false;
+      else if(sortedJets.size()>2)
+      {
+       dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
+      }
+      else
+      {
+       dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
+      }
       
-      Jw = weight;
-      JpT = sortedJets[0].pt();
-      Jmul[0] = multiplicity(sortedJets[0],0);
-      Jmul[1] = multiplicity(sortedJets[0],2);
-      Jflavor = jetFlavor[0];
-      JpTD = pTD(sortedJets[0]);
-      sigma2(sortedJets[0],Jsigma2);
-      tree->Fill();
+      if(!dijetCriteria) continue;
 
-      gluonFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 21)? 1:0, weight);
-      lightquarkFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 1 || jetFlavor[k] == 2 || jetFlavor[k] == 3)? 1:0, weight);
-      charmFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 4)? 1:0, weight);
-      bottomFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 5)? 1:0, weight);
-      unmatchedFrac.Fill(sortedJets[k].pt(), (jetFlavor[k] == 0)? 1:0, weight);
-    }
-  }//Event loop
+      vector <int> jetFlavor(sortedJets.size(),0);
+
+      cout << std::setprecision(10);
+
+      count = 0;
+      
+      //flavor tagging begins
+      for (unsigned int i = 0; i != sortedJets.size(); ++i) 
+      {      
+        //if(pTD(sortedJets) != sortedJets.size()) cout<< "NO.\n";
+        vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
+        if ( jetParts.size() == 1 ) continue;
+        
+        //match with status 23 particles and assign flavor to (2) leading jets
+        for(unsigned int k = 0; k != partonList.size(); ++k)  
+        {
+
+          double dR = deltaR( phi[partonList[k]], sortedJets[i].phi(), eta[partonList[k]],sortedJets[i].eta());
+          if ( dR < R ) 
+          {
+            count += 1;
+            // taggedJets-break1);
+            assert(jetFlavor[i]==0);     
+            jetFlavor[i] = abs(id[partonList[k]]);
+          }
+        }//tag tagging loop
+      }//Loop over leading jets
+      
+      //store jet data
+      for(int k = 0; k != jetFlavor.size(); ++k)
+      {
+        if(k == partonList.size()) break;
+        if(sortedJets[k].eta() > etaMax) continue;
+        
+        Jw = weight;
+        JpT = sortedJets[0].pt();
+        Jmul[0] = multiplicity(sortedJets[0],0);
+        Jmul[1] = multiplicity(sortedJets[0],2);
+        Jflavor = jetFlavor[0];
+        JpTD = pTD(sortedJets[0]);
+        sigma2(sortedJets[0],Jsigma2);
+        tree->Fill();
+      }
+    }//Event loop
+  }//physics definition algo
+
+  else if(algo == 2)
+  {
+    cout<<"Using hadron-based definition.\n";
+  }
+
+  else exit(0);
   
-  TH1D *lqF = lightquarkFrac.ProjectionX("light quarks","");
-  lqF->Write();
-
-  TH1D *gF = gluonFrac.ProjectionX("gluons","");
-  gF->Write();
-
-  TH1D *cF = charmFrac.ProjectionX("charm","");
-  cF->Write();
-
-  TH1D *bF = bottomFrac.ProjectionX("bottom","");
-  bF->Write();
-
-  TH1D *uF = unmatchedFrac.ProjectionX("unmatched","");
-  uF->Write();
-
   tree->AutoSave("Overwrite");
-  taggedJets->Write();
   outFile.Close();
   cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
   cout<<"Analysis stored in "<<options[2]<<endl;
