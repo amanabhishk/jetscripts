@@ -354,3 +354,33 @@ bool isBottom( const int& c ) {
   }
   return result;
 }
+
+bool hadronic_definition_status_codes( const Event& event, const int& index, int& count, UChar_t* status){
+  if((abs(event[index].status())==71 || abs(event[index].status())==72) && abs(event[index].id()) < 100)
+  {
+    ++count;
+    status[count] = 70;
+    return true;
+  }
+
+  if(isBottom(event[index].id()) && event[index].id() > 99)
+  {
+    if(!isBottom(event[event[index].daughter1()].id()) && !isBottom(event[event[index].daughter2()].id()))
+    {
+      ++count;
+      status[count] = 5;
+      return true;
+    }
+  }
+
+  if(isCharm(event[index].id()) && event[index].id() > 99)
+  {
+    if(!isCharm(event[event[index].daughter1()].id()) && !isCharm(event[event[index].daughter2()].id()))
+    {
+      ++count;
+      status[count] = 4;
+      return true;
+    }
+  }
+  return false;
+}

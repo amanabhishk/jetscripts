@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
       {
         //if(isCharm(id[i]) && abs(id[i]) != 4)cout<<" "<<id[i]<<endl;
         if( status[i] == 3 ) partonList.push_back(i);
-        else if (status[i] == 2) 
+        else if (status[i] == 70) 
         {   
           //if(abs(id[i])>99)cout<<abs(id[i])<<" ";
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
