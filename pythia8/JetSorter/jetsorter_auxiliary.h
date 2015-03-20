@@ -232,7 +232,7 @@ void explicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::Ps
   }  
 }
 
-unsigned int multiplicity(const fastjet::PseudoJet& jet, unsigned char cut)
+unsigned int multiplicity(const fastjet::PseudoJet& jet, const unsigned char& cut)
 {
   if(cut == 0) return jet.constituents().size();
   else if(cut == 1)
@@ -311,111 +311,46 @@ void sigma2(const fastjet::PseudoJet& jet, float* output){
   //return pow(eigenval[1]/pT2,0.5);
 }
 
-
-void histFiller( vector<TProfile*> &hists, double pt, double eTot, double piPlus,
-  double piMinus, double pi0Gamma, double kaPlus, double kaMinus, double kSZero,
-  double kLZero, double proton, double aproton, double neutron, double aneutron,
-  double gamma, double lambda0, double sigma, double elecmuon, double others ){
-  hists[0]->Fill( pt, piPlus/eTot ); hists[1]->Fill( pt, piMinus/eTot );
-  hists[2]->Fill( pt, pi0Gamma/eTot ); hists[3]->Fill( pt, kaPlus/eTot );
-  hists[4]->Fill( pt, kaMinus/eTot ); hists[5]->Fill( pt, kSZero/eTot );
-  hists[6]->Fill( pt, kLZero/eTot ); hists[7]->Fill( pt, proton/eTot );
-  hists[8]->Fill( pt, aproton/eTot ); hists[9]->Fill( pt, neutron/eTot );
-  hists[10]->Fill( pt, aneutron/eTot ); hists[11]->Fill( pt, gamma/eTot );
-  hists[12]->Fill( pt, lambda0/eTot ); hists[13]->Fill( pt, sigma/eTot );
-  hists[14]->Fill( pt, elecmuon/eTot ); hists[15]->Fill( pt, others/eTot );
-}
-
-int isBottom( int id ) {
-  int code1;
-  int code2;
-  bool tmpHasBottom = false;
-  code1 = (int)( ( abs( id ) / 100)%10 );
-  code2 = (int)( ( abs( id ) /1000)%10 );
-  if ( code1 == 5 || code2 == 5) tmpHasBottom = true;
-  return tmpHasBottom;
-}
-
-int isCharm( int id ) {
-  int code1;
-  int code2;
-  bool tmpHasCharm = false;
-  code1 = (int)( ( abs( id ) / 100)%10 );
-  code2 = (int)( ( abs( id ) /1000)%10 );
-  if ( code1 == 4 || code2 == 4) tmpHasCharm = true;
-  return tmpHasCharm;
-}
-
-int isStrange( int id ) {
-  int code1;
-  int code2;
-  bool tmpHasStrange = false;
-  code1 = (int)( ( abs( id ) / 100)%10 );
-  code2 = (int)( ( abs( id ) /1000)%10 );
-  if ( code1 == 3 || code2 == 3) tmpHasStrange = true;
-  return tmpHasStrange;
-}
-
-int isDown( int id ) {
-  int code1;
-  int code2;
-  bool tmpHasDown = false;
-  code1 = (int)( ( abs( id ) / 100)%10 );
-  code2 = (int)( ( abs( id ) /1000)%10 );
-  if ( code1 == 2 || code2 == 2) tmpHasDown = true;
-  return tmpHasDown;
-}
-
-int isUp( int id ) {
-  int code1;
-  int code2;
-  bool tmpHasUp = false;
-  code1 = (int)( ( abs( id ) / 100)%10 );
-  code2 = (int)( ( abs( id ) /1000)%10 );
-  if ( code1 == 1 || code2 == 1) tmpHasUp = true;
-  return tmpHasUp;
-}
-
-int statusCheck( int id1, int id2 ){
-  if ( id1 == 5 && isBottom( id2 ) ) return 1;
-  if ( id1 == 4 && isCharm( id2 ) ) return 1;
-  if ( id1 == 3 && isStrange( id2 ) ) return 1;
-  if ( id1 == 2 && isDown( id2 ) ) return 1;
-  if ( id1 == 1 && isUp( id2 ) ) return 1;
-  return 0;
-}
-
-int isExcitedState( Event &event, int idx, int id ) {
-  int d1 = event[idx].daughter1(), d2 = event[idx].daughter2();
-  if (d2!=0){
-    if (d1 < d2){
-      for (int i = d1; i <= d2; i++){
-        if ( statusCheck( id, event[i].id() ) ) return 1;
-      }
-    } else {
-      if ( statusCheck( id, event[d1].id() ) ) return 1;
-      if ( statusCheck( id, event[d2].id() ) ) return 1;
-    }
-  } else if (d1!=0){
-    if ( statusCheck( id, event[d1].id() ) ) return 1;
+bool isCharm( const int& c ) {
+  int id = abs(c);
+  int digit;
+  
+  if(id < 100)
+  {
+    if(id==4) return true;
+    else return false;
   }
-  return 0;
+
+  id = id/10;
+  bool result = false;
+  while(id != 0)
+  {
+    digit = id%10;
+    id = id/10;
+    if(id==4) result = true;
+    if(id>4) return false;  
+  }
+  return result;
 }
 
-int ChargeSign( int id ){
-  if ( id == 1 ) return 1;
-  if ( id == -2 ) return 1;
-  if ( id == -3 ) return 1;
-  if ( id == 4 ) return 1;
-  if ( id == -5 ) return 1;
-  if ( id == 6 ) return 1;
-  if ( id == -1 ) return -1;
-  if ( id == 2 ) return -1;
-  if ( id == 3 ) return -1;
-  if ( id == -4 ) return -1;
-  if ( id == 5 ) return -1;
-  if ( id == -6 ) return -1;
-  return 1;
+bool isBottom( const int& c ) {
+  int id = abs(c);
+  int digit;
+  
+  if(id < 100)
+  {
+    if(id==5) return true;
+    else return false;
+  }
+
+  id = id/10;
+  bool result = false;
+  while(id != 0)
+  {
+    digit = id%10;
+    id = id/10;
+    if(id==5) result = true;
+    if(id>5) return false;  
+  }
+  return result;
 }
-
-
