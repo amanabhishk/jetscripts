@@ -99,10 +99,28 @@ int main(int argc, char* argv[])
         status[count] = 3;
       }
       
-      else if(abs(event[t].status())==71 || abs(event[t].status())==72)
+      else if((abs(event[t].status())==71 || abs(event[t].status())==72) && abs(event[t].id()) < 100)
       {
         ++count;
         status[count] = 2;
+      }
+
+      else if(isBottom(event[t].id()) && event[t].id() > 99)
+      {
+        if(!isBottom(event[event[t].daughter1()].id()) && !isBottom(event[event[t].daughter2()].id()))
+        {
+          ++count;
+          status[count] = 5;
+        }
+      }
+
+      else if(isCharm(event[t].id()) && event[t].id() > 99)
+      {
+        if(!isCharm(event[event[t].daughter1()].id()) && !isCharm(event[event[t].daughter2()].id()))
+        {
+          ++count;
+          status[count] = 4;
+        }
       }
 
       else if(event[t].isFinal())
