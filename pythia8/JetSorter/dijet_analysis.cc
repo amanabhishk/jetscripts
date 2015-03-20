@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
           {
             count += 1;
             // taggedJets-break1);
-            assert(jetFlavor[i]==0);     
+            if(jetFlavor[i]!=0) continue;     
             jetFlavor[i] = abs(id[partonList[k]]);
           }
         }//tag tagging loop
@@ -291,19 +291,19 @@ int main(int argc, char* argv[])
       vector <int> jetFlavor(sortedJets.size(),0);
 
       cout << std::setprecision(10);
-
-      count = 0;
       
       //flavor tagging begins
       int flavor_from_hadron, flavor_from_parton, index;
       for (unsigned int i = 0; i != sortedJets.size(); ++i) 
       {      
         vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
+        jetParts = sorted_by_pt(jetParts);
+
         if ( jetParts.size() == 1 ) continue;
         if(i>1) break;
+        
         flavor_from_parton = 0;
         flavor_from_hadron = 0;
-        
         
         for(int p = 0; p != jetParts.size(); ++p)
         {
@@ -313,11 +313,23 @@ int main(int argc, char* argv[])
             if(flavor_from_hadron < index) flavor_from_hadron = index;  
           }
           
-          else if(index>100)
+          else if(index == 400 || index == 500)
           {
             if(flavor_from_parton < index) flavor_from_parton = index/100;  
           }
+        }
 
+        if(flavor_from_parton == 0)
+        {
+          for(int p = 0; p != jetParts.size(); ++p)
+          {
+            index = jetParts[p].user_index();
+            if(index > 99) 
+            {
+              flavor_from_parton = index/100;
+              break;
+            }
+          }
         }
 
         jetFlavor[i]=(flavor_from_hadron == 0)? flavor_from_parton:flavor_from_hadron;
