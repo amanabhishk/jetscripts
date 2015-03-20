@@ -99,6 +99,12 @@ int main(int argc, char* argv[])
         status[count] = 3;
       }
       
+      else if(abs(event[t].status())==71 || abs(event[t].status())==72)
+      {
+        ++count;
+        status[count] = 2;
+      }
+
       else if(event[t].isFinal())
       {
         ++count;
