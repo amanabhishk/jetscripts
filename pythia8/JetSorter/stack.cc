@@ -11,6 +11,7 @@ using namespace std;
 void stack()
 {
 
+	bool merge = false;
 	int ptBins = 48.;
 	const double ptRange[]=
     {18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
@@ -58,6 +59,7 @@ void stack()
 	TH1D *light_quarks = lightquarkFrac.ProjectionX("light quarks","");
   	TH1D *gluons = gluonFrac.ProjectionX("gluons","");
   	TH1D *strange = strangeFrac.ProjectionX("strange","");
+  	if(merge) light_quarks->Add(strange);
   	TH1D *charm = charmFrac.ProjectionX("charm","");
   	TH1D *bottom = bottomFrac.ProjectionX("bottom","");
   	TH1D *unmatched = unmatchedFrac.ProjectionX("unmatched","");
@@ -79,7 +81,7 @@ void stack()
 	//light_quarks->Add(strange);
 	hs->Add(bottom);
 	hs->Add(charm);
-	hs->Add(strange);
+	if(!merge)hs->Add(strange);
 	hs->Add(light_quarks);
 	hs->Add(gluons);
 	hs->Add(unmatched);
