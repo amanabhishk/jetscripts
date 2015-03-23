@@ -31,9 +31,6 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 
-// tdrStyle
-#include "tdrstyle_mod1.C"
-
 #include "TMatrix.h"
 #include "TMatrixDSymEigen.h"
 

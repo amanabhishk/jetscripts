@@ -32,8 +32,6 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 
-// tdrStyle
-#include "tdrstyle_mod1.C"
 // scripts
 #include "jetsorter_auxiliary.h"
 
