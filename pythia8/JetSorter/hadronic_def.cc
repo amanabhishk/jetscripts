@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
           particleTemp.set_user_index( (status[i]==6)? 3:status[i] );
           fjInputs.push_back( particleTemp );
         }
-        else if ( status[i] == 1 || status[i] == 2 ) 
+        else if ( status[i] == 1 ) 
         {   
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           fastjet::PseudoJet particleTemp = v;
@@ -205,12 +205,12 @@ int main(int argc, char* argv[])
         for(int p = 0; p != jetParts.size(); ++p)
         {
           index = jetParts[p].user_index();
-          if(index == 3 || index == 4 || index == 5)
+          if(index == 4 || index == 5)
           {
             if(flavor_from_hadron < index) flavor_from_hadron = index;  
           }
           
-          else if(index == 300 || index == 400 || index == 500)
+          else if(index == 400 || index == 500)
           {
             if(flavor_from_parton < index) flavor_from_parton = index/100;  
           }
