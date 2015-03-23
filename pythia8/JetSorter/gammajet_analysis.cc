@@ -164,8 +164,6 @@ int main(int argc, char* argv[])
         assert(check2);
         check2 = false;
       }
-      else assert(false);
-
     }//Event selector loop
   
     assert(gamma != -1);

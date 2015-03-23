@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
         fjInputs.push_back( particleTemp );
       }
       else if(status[i] == 2) leptonList.push_back(i);
-      else assert(false);
+      //else assert(false);
 
     }//Event selector loop
   
