@@ -311,6 +311,36 @@ void sigma2(const fastjet::PseudoJet& jet, float* output){
   //return pow(eigenval[1]/pT2,0.5);
 }
 
+void fillTree(const Particle& p, const int& count, Int_t* id, Float_t* pT, Float_t* eta, Float_t* phi, Float_t* m){
+  id[count] = p.id();
+  pT[count] = p.pT();
+  eta[count] = p.eta();
+  phi[count] = p.phi();
+  m[count] = p.m();
+}
+
+bool isStrange( const int& c ) {
+  int id = abs(c);
+  int digit;
+  
+  if(id < 100)
+  {
+    if(id==3) return true;
+    else return false;
+  }
+
+  id = id/10;
+  bool result = false;
+  while(id != 0)
+  {
+    digit = id%10;
+    id = id/10;
+    if(id==3) result = true;
+    if(id>3) return false;  
+  }
+  return result;
+}
+
 bool isCharm( const int& c ) {
   int id = abs(c);
   int digit;
@@ -355,12 +385,13 @@ bool isBottom( const int& c ) {
   return result;
 }
 
-bool hadronic_definition_status_codes( const Event& event, const int& index, int& count, UChar_t* status){
+
+void hadronic_definition_status_codes( Event& event, const int& index, int& count, UChar_t* status, Int_t* id, Float_t* pT, Float_t* eta, Float_t* phi, Float_t* m){
   if((abs(event[index].status())==71 || abs(event[index].status())==72) && abs(event[index].id()) < 100)
   {
     ++count;
     status[count] = 70;
-    return true;
+    fillTree(event.at(index), count, id, pT, eta, phi, m);
   }
 
   if(isBottom(event[index].id()) && event[index].id() > 99)
@@ -369,7 +400,7 @@ bool hadronic_definition_status_codes( const Event& event, const int& index, int
     {
       ++count;
       status[count] = 5;
-      return true;
+      fillTree(event.at(index), count, id, pT, eta, phi, m);
     }
   }
 
@@ -379,8 +410,38 @@ bool hadronic_definition_status_codes( const Event& event, const int& index, int
     {
       ++count;
       status[count] = 4;
-      return true;
+      fillTree(event.at(index), count, id, pT, eta, phi, m);
     }
   }
-  return false;
+  
+  if(isStrange(event[index].id()) && event[index].id() > 99)
+  {
+    if(!isStrange(event[event[index].daughter1()].id()) && !isStrange(event[event[index].daughter2()].id()))
+    {
+      ++count;
+      status[count] = 6;
+      fillTree(event.at(index), count, id, pT, eta, phi, m);
+    }
+  } 
+}
+
+void printTime(int total){
+  total = total/CLOCKS_PER_SEC;
+
+  int h = total/3600;
+  int min = (total%3600)/60;
+  int sec = total - 3600*h - 60*min;
+
+  cout<<"Done in "<<h<<" hours "<<min<<" minutes "<<sec<<" seconds."<<endl;
+}
+
+void printTime(int total, const int& events){
+  total = total/CLOCKS_PER_SEC;
+
+  int h = total/3600;
+  int min = (total%3600)/60;
+  int sec = total - 3600*h - 60*min;
+
+  cout<<"Done in "<<h<<" hours "<<min<<" minutes "<<sec<<" seconds."<<endl;
+  cout<<total*100/double(events)<<"seconds/1000 events.\n";
 }

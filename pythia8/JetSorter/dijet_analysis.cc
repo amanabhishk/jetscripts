@@ -232,14 +232,12 @@ int main(int argc, char* argv[])
       Events->GetEntry(iEvent);
 
       fjInputs.resize(0);
-      vector<int> partonList; //pick out status 23 particles
 
       //select relevant events and make partonList and fjInputs vectors
       for (unsigned int i = 0; i != eventParticleCount; ++i) 
       {
         //if(isCharm(id[i]) && abs(id[i]) != 4)cout<<" "<<id[i]<<endl;
-        if( status[i] == 3 ) partonList.push_back(i);
-        else if (status[i] == 70) 
+        if (status[i] == 70) 
         {   
           //if(abs(id[i])>99)cout<<abs(id[i])<<" ";
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
@@ -248,16 +246,16 @@ int main(int argc, char* argv[])
           particleTemp.set_user_index(id[i]*100);
           fjInputs.push_back( particleTemp );
         }
-        else if (status[i] == 4 || status[i] == 5) 
+        else if (status[i] == 4 || status[i] == 5 || status[i] == 6) 
         {   
           //if(abs(id[i])>99)cout<<abs(id[i])<<" ";
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           v *= pow(10,-18);
           fastjet::PseudoJet particleTemp = v;
-          particleTemp.set_user_index(status[i]);
+          particleTemp.set_user_index( (status[i]==6)? 3:status[i] );
           fjInputs.push_back( particleTemp );
         }
-        else if ( status[i] == 1 ) 
+        else if ( status[i] == 1 || status[i] == 2 ) 
         {   
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           fastjet::PseudoJet particleTemp = v;
@@ -267,7 +265,6 @@ int main(int argc, char* argv[])
       }//Event selector loop
     
       if (fjInputs.size() == 0) continue;
-      assert(partonList.size() == 2);
       //clustering using fastjet
       vector <fastjet::PseudoJet> unsortedJets, sortedJets;
       fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
@@ -308,12 +305,12 @@ int main(int argc, char* argv[])
         for(int p = 0; p != jetParts.size(); ++p)
         {
           index = jetParts[p].user_index();
-          if(index == 5 || index == 4)
+          if(index == 3 || index == 4 || index == 5)
           {
             if(flavor_from_hadron < index) flavor_from_hadron = index;  
           }
           
-          else if(index == 400 || index == 500)
+          else if(index == 300 || index == 400 || index == 500)
           {
             if(flavor_from_parton < index) flavor_from_parton = index/100;  
           }
@@ -357,7 +354,7 @@ int main(int argc, char* argv[])
 
   tree->AutoSave("Overwrite");
   outFile.Close();
-  cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
+  printTime((std::clock()-start));
   cout<<"Analysis stored in "<<options[2]<<endl;
   
   return 0;

@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   std::stringstream outputFilename("");
   outputFilename << nEvent <<"events_dijet.root";
 
-  TFile outFile(outputFilename.str().c_str(), "NEW");
+  TFile outFile(outputFilename.str().c_str(), "RECREATE");
   
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
@@ -80,41 +80,37 @@ int main(int argc, char* argv[])
   tree->Branch("m", m, "m[n]/F");
  
   int state, count;
+
+  std::clock_t start = std::clock();
   
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
     if (!pythia.next()) continue;
     
-    Particle& p = pythia.event.at(iEvent);
     weight = pythia.info.weight();
     count = -1;
 
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
-      
+      Particle& p = pythia.event.at(t);
+
       if(event[t].status() == -23) 
       {
         ++count;
         status[count] = 3;
+        fillTree(p, count, id, pT, eta, phi, m);
       }
       
-      else if(hadronic_definition_status_codes(event, t, count, status));
+      hadronic_definition_status_codes(event, t, count, status, id, pT, eta, phi, m);
 
-      else if(event[t].isFinal())
+      if(event[t].isFinal())
       {
         ++count;
         status[count] = 1;
+        fillTree(p, count, id, pT, eta, phi, m);
       }
-
-      else continue;
-
-      id[count] = event[t].id();
-      pT[count] = event[t].pT();
-      eta[count] = event[t].eta();
-      phi[count] = event[t].phi();
-      m[count] = event[t].m();
     }
 
     n = UShort_t(count+1);
@@ -124,6 +120,7 @@ int main(int argc, char* argv[])
 
   tree->AutoSave("Overwrite"); 
   outFile.Close();
+  printTime((std::clock()-start),nEvent);
   cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }
