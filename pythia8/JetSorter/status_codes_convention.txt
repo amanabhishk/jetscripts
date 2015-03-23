@@ -3,7 +3,7 @@ Status Codes Conventions
 These codes are used when the relevant particles are stored into the TTree in the first step.
 
 1	final state particles, except the gamma from gamma+jet sample, and muons from Z+jet sample
-2	final state particles excluded in the above case (the gamma and muons)
+2	final state particles that were excluded in the above case (the gamma and muons)
 3	outgoing partons from the hardest subprocess
 4	c hadron (ghost)
 5	b hadron (ghost)
