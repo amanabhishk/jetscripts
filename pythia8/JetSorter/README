@@ -1,9 +1,9 @@
 ######################################################################################
-##	Setup for applying different jet sorting algorithms and plotting the results.	##
-##	Aman Abhishek																	##
-##	Master's thesis work done under Mikko Vuotilainen 								##
-##	University of Helsinki, Finland													##
-##	23.03.2015																		##
+##	Setup for applying different jet sorting algorithms and plotting the results.   ##
+##	Aman Abhishek                                                                   ##
+##	Master's thesis work done under Mikko Vuotilainen                               ##
+##	University of Helsinki, Finland                                                 ##
+##	23.03.2015                                                                      ##
 ######################################################################################
 
 USAGE:
