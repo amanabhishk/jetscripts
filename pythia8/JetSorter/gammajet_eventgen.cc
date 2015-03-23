@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
 
   int count, gammaIndex = -1;
   bool skip;
+  std::clock_t start = std::clock();
 
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
@@ -116,39 +117,34 @@ int main(int argc, char* argv[])
 
     ++count;
     status[count] = 2;
-    id[count] = event[gammaIndex].id();
-    pT[count] = event[gammaIndex].pT();
-    eta[count] = event[gammaIndex].eta();
-    phi[count] = event[gammaIndex].phi();
-    m[count] = event[gammaIndex].m();
+    fillTree(event.at(gammaIndex), count, id, pT, eta, phi, m);
+    // id[count] = event[gammaIndex].id();
+    // pT[count] = event[gammaIndex].pT();
+    // eta[count] = event[gammaIndex].eta();
+    // phi[count] = event[gammaIndex].phi();
+    // m[count] = event[gammaIndex].m();
 
 
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
-      if(event[t].isFinal())
+      Particle& p = pythia.event.at(t);
+
+      if(event[t].isFinal() && t != gammaIndex)
       {
-        if(t != gammaIndex)
-        {
-          ++count;
-          status[count] = 1;
-        }
-        else continue;
+        ++count;
+        status[count] = 1;
+        fillTree(p, count, id, pT, eta, phi, m);
       }
 
-      else if(event[t].status() == -23 && abs(event[t].id()) != 22)
+      if(event[t].status() == -23 && abs(event[t].id()) != 22)
       {
         ++count;
         status[count] = 3;
+        fillTree(p, count, id, pT, eta, phi, m); 
       }
 
-      else continue;
-
-      id[count] = event[t].id();
-      pT[count] = event[t].pT();
-      eta[count] = event[t].eta();
-      phi[count] = event[t].phi();
-      m[count] = event[t].m();
+      hadronic_definition_status_codes(event, t, count, status, id, pT, eta, phi, m);
     }
 
     n = UShort_t(count+1);
@@ -157,6 +153,7 @@ int main(int argc, char* argv[])
 
   tree->AutoSave("Overwrite");
   outFile.Close();
+  printTime((std::clock()-start),nEvent);
   cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }

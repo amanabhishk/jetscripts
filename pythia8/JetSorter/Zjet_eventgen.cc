@@ -82,6 +82,8 @@ int main(int argc, char* argv[])
   int state, count, temp,  index, identity;
   vector<int> leptonListFinal;
 
+  std::clock_t start = std::clock();
+
   /****************************************END OF SET-UP**************************************************/
   for (int iEvent = 0; iEvent != nEvent; ++iEvent) 
   {
@@ -93,6 +95,7 @@ int main(int argc, char* argv[])
     for(int t=0; t != event.size(); ++t)
     {
       assert(count<size);
+      Particle& p = pythia.event.at(t);
       state = abs(event[t].status());
       identity = abs(event[t].id());
 
@@ -107,22 +110,18 @@ int main(int argc, char* argv[])
         {
           ++count;
           status[count] = 1;
+          fillTree(p, count, id, pT, eta, phi, m);
         }
       }
 
-      else if(state == 23 && identity != 13)
+      if(state == 23 && identity != 13)
       {
         ++count;
         status[count] = 3;
+        fillTree(p, count, id, pT, eta, phi, m);
       }
 
-      else continue;
-
-      id[count] = event[t].id();
-      pT[count] = event[t].pT();
-      eta[count] = event[t].eta();
-      phi[count] = event[t].phi();
-      m[count] = event[t].m();
+      hadronic_definition_status_codes(event, t, count, status, id, pT, eta, phi, m);
     }
 
     temp = 0;
@@ -150,12 +149,8 @@ int main(int argc, char* argv[])
         ++count;
         status[count] = 1;
       }
-      
-      id[count] = event[index].id();
-      pT[count] = event[index].pT();
-      eta[count] = event[index].eta();
-      phi[count] = event[index].phi();
-      m[count] = event[index].m();
+
+      fillTree(event.at(index), count, id, pT, eta, phi, m);
     }
     //assert(temp==2);
 
@@ -165,6 +160,7 @@ int main(int argc, char* argv[])
 
   tree->AutoSave("Overwrite");
   outFile.Close();
+  printTime((std::clock()-start),nEvent);
   cout<<"TTree is saved in "<<outputFilename.str().c_str()<<endl;
   return 0;
 }
