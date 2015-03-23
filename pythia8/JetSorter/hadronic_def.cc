@@ -47,13 +47,14 @@ int main(int argc, char* argv[])
   std::clock_t start = std::clock();
 
   char* options[argc];
-  if(argc != 3)
+  if(argc != 4)
   {
     cout<<"Incorrect number of arguments. Correct input is:\n" ;
-    cout<<"$ ./physicsDef.exe [inputfile.root] [outputfile.root]\n";
+    cout<<"$ ./physicsDef.exe [inputfile.root] [outputfile.root] [1(dijet) 2(Zjet) 3(gamma)]\n";
     exit(0);
   }
   for(unsigned short int t = 0; t < argc ; ++t) options[t] = argv[t];
+  unsigned short int sample = atoi(options[3]);
 
   TApplication theApp("event_generation", &argc, argv);
   unsigned int size = 2000;
@@ -102,7 +103,7 @@ int main(int argc, char* argv[])
 
 
   float Jw, JpT, JpTD, Jsigma2[]={0,0};
-  unsigned int Jmul[]={0,0};
+  unsigned int Jmul[]={0,0}, jetcount = 0;
   unsigned char Jflavor;
 
   TTree* tree = new TTree("tree","tree");
@@ -113,7 +114,9 @@ int main(int argc, char* argv[])
   tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
   tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
 
-  TLorentzVector v;       //for converting to cartesian coordinates
+  TLorentzVector v, v1, v2;       //for converting to cartesian coordinates
+  vector<int> leptonList;
+  int gamma = -1;
 
   /**************************************END OF SET-UP**************************************/
 
@@ -129,6 +132,7 @@ int main(int argc, char* argv[])
 
       Events->GetEntry(iEvent);
 
+      leptonList.resize(0);
       fjInputs.resize(0);
 
       //select relevant events and make partonList and fjInputs vectors
@@ -160,6 +164,11 @@ int main(int argc, char* argv[])
           particleTemp.set_user_index(-1);
           fjInputs.push_back( particleTemp );
         }
+        else if(status[i] == 2)
+        {
+          leptonList.push_back(i);
+          gamma = i;
+        }
       }//Event selector loop
     
       if (fjInputs.size() == 0) continue;
@@ -170,18 +179,48 @@ int main(int argc, char* argv[])
       unsortedJets = jetCluster.inclusive_jets( pTMin );
       sortedJets = sorted_by_pt(unsortedJets);
 
-      //selecting good dijet events
-      if(sortedJets.size()<2) dijetCriteria = false;
-      else if(sortedJets.size()>2)
+      if(sortedJets.size()==0)  continue;
+
+      if(sample == 1)
       {
-       dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
-      }
-      else
-      {
-       dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
+        //selecting good dijet events
+        if(sortedJets.size()<2) dijetCriteria = false;
+        else if(sortedJets.size()>2)
+        {
+         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
+        }
+        else
+        {
+         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
+        }
+        if(!dijetCriteria) continue;
       }
       
-      if(!dijetCriteria) continue;
+      if(sample == 3)
+      {
+        //selecting good gamma-jet events
+        if(sortedJets[1].pt()>0.3*pT[gamma]) continue;
+        if(deltaR(phi[gamma],sortedJets[0].phi(),eta[gamma],sortedJets[0].eta()) < R) continue;
+      }
+
+      if(sample == 2)
+      {
+        //selecting good Z-jet events
+        // Checking sufficient resolution
+        if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
+        if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
+
+        //the pT of the muons are required to be greater than 20 and 10 GeV, respectively
+        if(!((pT[leptonList[0]]>20 && pT[leptonList[1]]>10) || (pT[leptonList[1]]>20 && pT[leptonList[0]]>10))) continue;
+
+        //the subleading jet in the event is required to have a pT smaller than 30% of that of the dimuon system.
+        v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
+        v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
+        if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
+
+        //the dimuon invariant mass is required to fall in the 70-110 GeV range
+        if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) continue;
+      }
 
       vector <int> jetFlavor(sortedJets.size(),0);
 
@@ -247,6 +286,7 @@ int main(int argc, char* argv[])
       }
     }//Event loop
     
+  cout<<jetcount<<endl;
   tree->AutoSave("Overwrite");
   outFile.Close();
   printTime((std::clock()-start));
