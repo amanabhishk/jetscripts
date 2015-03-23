@@ -1,5 +1,10 @@
-A folder for general jet sorting scenarios with pythia8. The main program 
-consists of jetsorter.cc and jetsorter_auxiliary.h.
+######################################################################################
+##	Setup for applying different jet sorting algorithms and plotting the results.	##
+##	Aman Abhishek																	##
+##	Master's thesis work done under Mikko Vuotilainen 								##
+##	University of Helsinki, Finland													##
+##	23.03.2015																		##
+######################################################################################
 
 USAGE:
 
@@ -7,37 +12,96 @@ USAGE:
 ## configure root correctly (thisroot.sh has to be added as a 'source').
 ## In other cases, the makefile will require some editing.
 
-make jetsorter
-## jetsorter.exe is created
+LEVEL 1: GENERATING EVENTS AND STORING THEM IN TTREE
+##########################################################################
+##																		##
+##	(1)DIJET SAMPLE														##
+##																		##
+##	make dijet_eventgen													##
+##	./dijet_eventgen.exe [number of events]								##
+##	#the pythia settings are imported from pythia_dijet.cmnd 			##
+##	#output file will be named [number of events]events_dijet.root		##
+##																		##
+##	(2)Z+JET SAMPLE														##
+##																		##
+##	make Zjet_eventgen													##
+##	./Zjet_eventgen.exe [number of events]								##
+##	#the pythia settings are imported from pythia_Zjet.cmnd 			##
+##	#output file will be named [number of events]events_Zjet.root		##
+##																		##
+##	(3)GAMMA+JET SAMPLE													##
+##																		##
+##	make dijet_eventgen													##
+##	./gammajet_eventgen.exe [number of events]							##
+##	#the pythia settings are imported from pythia_gammajet.cmnd 		##
+##	#output file will be named [number of events]events_gammaJet.root	##
+##																		##
+##########################################################################
 
-./jetsorter.exe [NoOfEvents]
-## sortedjets.root is created. If such a file already exists, the old
-## version is overwritten. It is advicable to save important runs with
-## another name. However, sortedjets.root is the default filename used
-## by analysis scripts and thus it may be necessary to do some swapping
-## between filenames or modify the scripts.
+LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
+##########################################################################
+##																		##	
+##	APPLYING PHYSICS DEFINITION - PARTON LEVEL MATCHING					##
+##																		##
+##	(1)DIJET SAMPLE														##
+##																		##
+##	make dijet_analysis													##
+##	./dijet_analysis.exe [input_file.root] [output_file.root]			##
+##	#input_file.root to be taken from level 1 output 					##
+##	#make sure that the input_file.root belongs to a dijet sample		##
+##																		##
+##	(2)Z+JET SAMPLE														##
+##																		##
+##	make Zjet_analysis													##
+##	#everything analogous to the first case.				 			##
+##																		##
+##	(3)GAMMA+JET SAMPLE													##
+##																		##
+##	make dijet_analysis													##
+##	#everything analogous to the first case.							##
+##																		##
+##########################################################################
 
-make clean
-## destroys temporary files very aggressively, beware.
+##########################################################################
+##																		##	
+##	APPLYING HADRON BASED DEFINITION 									##
+##																		##
+##	make hadronic_def													##
+##	./hadronic_def.exe [input_file.root] [output_file.root] [sample#]	##
+##	#Sample numbers: 1/dijet, 2/Zjet, 3/gammajet 						##
+##	#input_file.root to be taken from level 1 output.					##
+##																		##
+##########################################################################
 
-CINT files, with *.C (vs. *.cc used by the makefile):
-(run these with 'root -l *.C+' or similar commands)
+LEVEL 3: PLOTTING
+##########################################################################
+##																		##
+##	root -l stack.cc+													##
+##	#makes stack plot of jet flavor fractions							##
+##	#file being used should be output file from level 2, hardcoded.		##
+##																		##
+##	root -l plot.cc+							 						##
+##	#plots QGL variables 												##
+##	#file being used should be output file from level 2, hardcoded.		##
+##																		##
+##########################################################################
 
-PLOTTING
 
-runPFSortedJets.C:
-## Primary plotting script. Uses the particle flow ordering scheme for the
-## different particles.
+Status Codes Conventions
 
-runSortedJets.C:
-## An older version. Graphical stacking is done according to the particle
-## type. Usage not adviced, unless it is specially wanted.
+These codes are used when the relevant particles are stored into the TTree in the level 1.
 
-runSortedJetsDistr.C:
-## Older version, used to inspect pT distributions.
+1	final state particles, except the gamma from gamma+jet sample, and muons from Z+jet sample
+2	final state particles that were excluded in the above case (the gamma and muons)
+3	outgoing partons from the hardest subprocess
+4	c hadron (ghost)
+5	b hadron (ghost)
+6	s hadron (ghost)
+70	ghost partons
 
-OTHERS:
-
-tdrstyle_*.C are used for the graphical representations
-
-mergeBins.C a small scripts
+------------------------------------------------
+algorithm					status codes used
+------------------------------------------------
+physics definition: 		1,2,3
+hadron-based definition:	1,2,4,5,6,70
+------------------------------------------------
