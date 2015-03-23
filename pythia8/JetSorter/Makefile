@@ -1,6 +1,6 @@
 ################################################################
 ## Makefile for building Pythia-ROOT-Fastjet code (jetsorter) ## 
-## Hannu Siikonen, 12.01.2015                                 ##  
+## Aman Abhishek, 23.03.2015                                 ##  
 ################################################################
 
 SHELL = /bin/bash
@@ -18,55 +18,25 @@ PYTHIALIB=/usr/local/lib/libpythia8.so
 all:
 	@echo "No make for all objects provided."
 
-# Basic jetsorter
-jetsorter: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-Zjet_analysis: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-gammajet_analysis: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-dijet_analysis: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-physicsDef_plot: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
+# Event generation files for 3 samples.
 Zjet_eventgen: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
 gammajet_eventgen: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
 dijet_eventgen: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
-readtree: $$@.cc $(PYTHIALIB)
+#Physics-definition algorithm, sample specific
+Zjet_analysis: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+gammajet_analysis: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+dijet_analysis: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+#Hadron-based definition
 hadronic_def: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-
-
-runSortedJetsDistr: $$@.C $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-runSortedJets: $$@.C $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-
-
-# The main-files are from the pythia8 source, used to test that everything works
-main71 main72: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ $(CXXFLAGS) $(PYTHIA) $(FASTJET) -o $@.exe 
-
-main91: $$@.cc $(PYTHIALIB) 
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) -ldl -o $@.exe 
-
-main92: $$@.cc $$@.h $$@LinkDef.h $(PYTHIALIB) 
-	`rootcint -f $@Dct.cc -c `pythia8-config --cflags` $@.h $@LinkDef.h`
-	$(CXX) $@Dct.cc $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) -o $@.exe 
 
 # Clean.
 clean:
