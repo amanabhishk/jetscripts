@@ -45,7 +45,7 @@ LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
 ##                                                                      ##
 ##  (1)DIJET SAMPLE                                                     ##
 ##                                                                      ##
-##  make dijet_analysis																									##
+##  make dijet_analysis                                                 ##
 ##  ./dijet_analysis.exe [input_file.root] [output_file.root]           ##
 ##  #input_file.root to be taken from level 1 output                    ##
 ##  #make sure that the input_file.root belongs to a dijet sample       ##
@@ -64,7 +64,7 @@ LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
 
 ##########################################################################
 ##                                                                      ##  
-##  APPLYING HADRON BASED DEFINITION 																		##
+##  APPLYING HADRON BASED DEFINITION                                    ##
 ##                                                                      ##
 ##  make hadronic_def                                                   ##
 ##  ./hadronic_def.exe [input_file.root] [output_file.root] [sample#]   ##
