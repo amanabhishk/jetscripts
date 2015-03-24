@@ -15,50 +15,50 @@ USAGE:
 LEVEL 1: GENERATING EVENTS AND STORING THEM IN TTREE
 ##########################################################################
 ##                                                                      ##
-##  (1)DIJET SAMPLE																											##
+##  (1)DIJET SAMPLE                                                     ##
 ##                                                                      ##
-##  make dijet_eventgen																									##
-##  ./dijet_eventgen.exe [number of events]															##
-##  #the pythia settings are imported from pythia_dijet.cmnd 						##
-##  #output file will be named [number of events]events_dijet.root			##
+##  make dijet_eventgen                                                 ##
+##  ./dijet_eventgen.exe [number of events]                             ##
+##  #the pythia settings are imported from pythia_dijet.cmnd            ##
+##  #output file will be named [number of events]events_dijet.root      ##
 ##                                                                      ##
-##  (2)Z+JET SAMPLE																											##
+##  (2)Z+JET SAMPLE                                                     ##
 ##                                                                      ##
-##  make Zjet_eventgen																									##
-##  ./Zjet_eventgen.exe [number of events]															##
-##  #the pythia settings are imported from pythia_Zjet.cmnd 						##
-##  #output file will be named [number of events]events_Zjet.root				##
+##  make Zjet_eventgen                                                  ##
+##  ./Zjet_eventgen.exe [number of events]                              ##
+##  #the pythia settings are imported from pythia_Zjet.cmnd             ##
+##  #output file will be named [number of events]events_Zjet.root       ##
 ##                                                                      ##
-##  (3)GAMMA+JET SAMPLE																									##
+##  (3)GAMMA+JET SAMPLE                                                 ##
 ##                                                                      ##
-##  make dijet_eventgen																									##
-##  ./gammajet_eventgen.exe [number of events]													##
-##  #the pythia settings are imported from pythia_gammajet.cmnd 				##
-##  #output file will be named [number of events]events_gammaJet.root		##
+##  make dijet_eventgen                                                 ##
+##  ./gammajet_eventgen.exe [number of events]                          ##
+##  #the pythia settings are imported from pythia_gammajet.cmnd         ##
+##  #output file will be named [number of events]events_gammaJet.root   ##
 ##                                                                      ##
 ##########################################################################
 
 LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
 ##########################################################################
 ##                                                                      ##  
-##  APPLYING PHYSICS DEFINITION - PARTON LEVEL MATCHING									##
+##  APPLYING PHYSICS DEFINITION - PARTON LEVEL MATCHING                 ##
 ##                                                                      ##
-##  (1)DIJET SAMPLE																											##
-##                                                                      ##
-##  make dijet_analysis																									##
-##  ./dijet_analysis.exe [input_file.root] [output_file.root]						##
-##  #input_file.root to be taken from level 1 output 										##
-##  #make sure that the input_file.root belongs to a dijet sample				##
-##                                                                      ##
-##  (2)Z+JET SAMPLE																											##
-##                                                                      ##
-##  make Zjet_analysis																									##
-##  #everything analogous to the first case.				 										##
-##                                                                      ##
-##  (3)GAMMA+JET SAMPLE																									##
+##  (1)DIJET SAMPLE                                                     ##
 ##                                                                      ##
 ##  make dijet_analysis																									##
-##  #everything analogous to the first case.														##
+##  ./dijet_analysis.exe [input_file.root] [output_file.root]           ##
+##  #input_file.root to be taken from level 1 output                    ##
+##  #make sure that the input_file.root belongs to a dijet sample       ##
+##                                                                      ##
+##  (2)Z+JET SAMPLE                                                     ##
+##                                                                      ##
+##  make Zjet_analysis                                                  ##
+##  #everything analogous to the first case.                            ##
+##                                                                      ##
+##  (3)GAMMA+JET SAMPLE                                                 ##
+##                                                                      ##
+##  make dijet_analysis                                                 ##
+##  #everything analogous to the first case.                            ##
 ##                                                                      ##
 ##########################################################################
 
@@ -66,23 +66,23 @@ LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
 ##                                                                      ##  
 ##  APPLYING HADRON BASED DEFINITION 																		##
 ##                                                                      ##
-##  make hadronic_def																										##
-##  ./hadronic_def.exe [input_file.root] [output_file.root] [sample#]		##
-##  #Sample numbers: 1/dijet, 2/Zjet, 3/gammajet 												##
-##  #input_file.root to be taken from level 1 output.										##
+##  make hadronic_def                                                   ##
+##  ./hadronic_def.exe [input_file.root] [output_file.root] [sample#]   ##
+##  #Sample numbers: 1/dijet, 2/Zjet, 3/gammajet                        ##
+##  #input_file.root to be taken from level 1 output.                   ##
 ##                                                                      ##
 ##########################################################################
 
 LEVEL 3: PLOTTING
 ##########################################################################
 ##                                                                      ##
-##  root -l stack.cc+																										##
-##  #makes stack plot of jet flavor fractions														##
-##  #file being used should be output file from level 2, hardcoded.			##
+##  root -l stack.cc+                                                   ##
+##  #makes stack plot of jet flavor fractions                           ##
+##  #file being used should be output file from level 2, hardcoded.     ##
 ##                                                                      ##
-##  root -l plot.cc+							 																			##
-##  #plots QGL variables 																								##
-##  #file being used should be output file from level 2, hardcoded.			##
+##  root -l plot.cc+                                                    ##
+##  #plots QGL variables                                                ##
+##  #file being used should be output file from level 2, hardcoded.     ##
 ##                                                                      ##
 ##########################################################################
 
@@ -91,17 +91,17 @@ Status Codes Conventions
 
 These codes are used when the relevant particles are stored into the TTree in the level 1.
 
-1		final state particles, except the gamma from gamma+jet sample, and muons from Z+jet sample
-2		final state particles that were excluded in the above case (the gamma and muons)
-3		outgoing partons from the hardest subprocess
-4		c hadron (ghost)
-5		b hadron (ghost)
-6		s hadron (ghost)
-70	ghost partons
+1    final state particles, except the gamma from gamma+jet sample, and muons from Z+jet sample
+2    final state particles that were excluded in the above case (the gamma and muons)
+3    outgoing partons from the hardest subprocess
+4    c hadron (ghost)
+5    b hadron (ghost)
+6    s hadron (ghost)
+70   ghost partons
 
 ------------------------------------------------
-algorithm									status codes used
+algorithm                  status codes used
 ------------------------------------------------
-physics definition: 			1,2,3
-hadron-based definition:	1,2,4,5,6,70
+physics definition:        1,2,3
+hadron-based definition:   1,2,4,5,6,70
 ------------------------------------------------
