@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void sigma()
+void compare()
 {
 	TDirectory *curdir = gDirectory;
 
@@ -127,17 +127,36 @@ void sigma()
 		{
 			std::stringstream c_head("");
 			c_head <<"c"<< t<<l;
-			if(t%3==0) c[t] = tdrCanvas(c_head.str().c_str(),xkcd[l],0,33);
-			tdrDraw(plots[t][0][l] ,"P",markers[t] ,color[t%3],kSolid,-1,3003,kRed-3);
-			tdrDraw(plots[t][1][l],"P",markers[(t+3)%6],color[t%3],kSolid,-1,3005,kBlue);
+			if(t%3==0) 
+			{
+				c[t] = tdrCanvas(c_head.str().c_str(),xkcd[l],0,33);
+				
+			}
+			tdrDraw(plots[t][0][l] ,"P",markers[t%3] ,color[t%3]);
+			tdrDraw(plots[t][1][l],"P",markers[3+t%3],color[t%3]);
 			plots[t][0][l]->Scale(1/plots[t][0][l]->Integral());
 			plots[t][1][l]->Scale(1/plots[t][1][l]->Integral());
+
+			//TLegend *leg = tdrLeg(0.5,0.82,0.175,0.50);
+			
+			if(t%3==2) 
+			{
+				TLegend* leg = tdrLeg(0.88+0.1,0.72,0.675+0.1,0.30+0.045*4);
+				leg->SetHeader("gluon");
+				leg->AddEntry(plots[t-2][0][l],"Z+jet","P");
+				leg->AddEntry(plots[t-1][0][l],"#gamma+jet","P");
+				leg->AddEntry(plots[t][0][l],"dijet","P");
+				leg->Draw();
+
+				TLegend* gel = tdrLeg(0.88+0.1,0.48,0.675+0.1,0.24);
+				gel->SetHeader("quark");
+				gel->AddEntry(plots[t-2][1][l],"Z+jet","P");
+				gel->AddEntry(plots[t-1][1][l],"#gamma+jet","P");
+				gel->AddEntry(plots[t][1][l],"dijet","P");
+				gel->Draw();				
+			}
+	
 		}
 	}
-	// TCanvas *c9 = tdrCanvas("c9",h1,0,33);
-	// tdrDraw(gs,"P",kFullCircle,kRed-3,kSolid,-1,3003,kRed-3);
-	// tdrDraw(qs,"P",kFullCircle,kBlue,kSolid,-1,3005,kBlue);
-	// qs->Scale(1/qs->Integral());
-	// gs->Scale(1/gs->Integral());
 }
 
