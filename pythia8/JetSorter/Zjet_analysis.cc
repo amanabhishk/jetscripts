@@ -74,17 +74,6 @@ int main(int argc, char* argv[])
   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
-  // Book histograms
-  // TProfile gluonFrac("g","g",ptBins,ptRange);
-  // TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
-  // TProfile strangeFrac("s","s",ptBins,ptRange);
-  // TProfile charmFrac("c","c",ptBins,ptRange);
-  // TProfile bottomFrac("b","b",ptBins,ptRange);
-  // TProfile unmatchedFrac("unmatched","unmatched",ptBins,ptRange);
-  // TH1D* taggedJets =  new TH1D("taggedJets","taggedJets",10, 0.5, 10.5);
-  // TH1D* jetMultiplicity =  new TH1D("jetMultiplicity","jetMultiplicity",100, 0, 20);
-  // TH1D* visSize = new TH1D("visSize","visSize",500,0,1000);
-
   TFile *f = new TFile(options[1]);              //input file with events
   TTree *Events = (TTree*)f->Get("Events");
   
@@ -158,7 +147,6 @@ int main(int argc, char* argv[])
         fjInputs.push_back( particleTemp );
       }
       else if(status[i] == 2) leptonList.push_back(i);
-      //else assert(false);
 
     }//Event selector loop
   
@@ -172,7 +160,6 @@ int main(int argc, char* argv[])
     unsortedJets = jetCluster.inclusive_jets( pTMin );
     sortedJets = sorted_by_pt(unsortedJets);
 
-    // jetMultiplicity->Fill(sortedJets.size());
     if(sortedJets.size()==0)  continue;
 
     // Checking sufficient resolution
@@ -214,44 +201,12 @@ int main(int argc, char* argv[])
     JpTD = pTD(sortedJets[0]);
     sigma2(sortedJets[0],Jsigma2);
     tree->Fill();
-
-    // gluonFrac.Fill(sortedJets[0].pt(), (jetFlavor == 21)? 1:0, weight);
-    // lightquarkFrac.Fill(sortedJets[0].pt(), (jetFlavor == 1 || jetFlavor == 2)? 1:0, weight);
-    // strangeFrac.Fill(sortedJets[0].pt(), (jetFlavor == 3)? 1:0, weight);
-    // charmFrac.Fill(sortedJets[0].pt(), (jetFlavor == 4)? 1:0, weight);
-    // bottomFrac.Fill(sortedJets[0].pt(), (jetFlavor == 5)? 1:0, weight);
-    // unmatchedFrac.Fill(sortedJets[0].pt(), (jetFlavor == 0)? 1:0, weight);
   }//Event loop
   
-  
-  // TH1D *lqF = lightquarkFrac.ProjectionX("light quarks","");
-  // lqF->Write();
-
-  // TH1D *gF = gluonFrac.ProjectionX("gluons","");
-  // gF->Write();
-
-  // TH1D *cF = charmFrac.ProjectionX("charm","");
-  // cF->Write();
-
-  // TH1D *sF = strangeFrac.ProjectionX("strange","");
-  // sF->Write();
-
-  // TH1D *bF = bottomFrac.ProjectionX("bottom","");
-  // bF->Write();
-
-  // TH1D *uF = unmatchedFrac.ProjectionX("unmatched","");
-  // uF->Write();
-
-  // jetMultiplicity->Write();
-  // taggedJets->Write();
-  // visSize->Write();
-  
   tree->AutoSave("Overwrite");
-  // leptons->AutoSave("Overwrite");
-  // Z->AutoSave("Overwrite");
   outFile.Close();
-
-  cout<<"Done in "<<(std::clock()-start)/CLOCKS_PER_SEC<<" seconds. "<<endl;
+  printTime((std::clock()-start));
+  cout<<"Analysis stored in "<<options[2]<<endl;
   
   return 0;
 }
