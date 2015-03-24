@@ -19,14 +19,14 @@ void qgl()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("z.root","READ");
+	TFile *f = new TFile("g.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	assert(tree && !tree->IsZombie());
 	unsigned int N = (unsigned int)tree->GetEntries(); 
 	cout<<N<<" jets in file1."<<endl;
 
-	TFile *f1 = new TFile("z1.root","READ");
+	TFile *f1 = new TFile("g1.root","READ");
 	assert(f1 && !f1->IsZombie());
 	TTree *tree1 = (TTree*)f1->Get("tree");
 	assert(tree1 && !tree1->IsZombie());
@@ -44,7 +44,7 @@ void qgl()
 	tree->SetBranchAddress("jet_weight",&weight);
 	tree->SetBranchAddress("jet_multiplicity",constituents);
 
-	//Histograms for file 1.
+	//Pograms for file 1.
 	TH1D* sigma2_g = new TH1D("sigma2_g","sigma2_g",100,0,0.2);
 	TH1D* sigma2_q = new TH1D("sigma2_q","sigma2_q",100,0,0.2);
 	TH1D* sigma2_u = new TH1D("sigma2_u","sigma2_u",100,0,0.2);
@@ -72,7 +72,7 @@ void qgl()
 	multiplicity_g->SetLineColor(kRed);
 	multiplicity_u->SetLineColor(kGreen);
 
-	//Histograms for file 2.
+	//Pograms for file 2.
 	TH1D* sigma21_g = new TH1D("sigma21_g","sigma21_g",100,0,0.2);
 	TH1D* sigma21_q = new TH1D("sigma21_q","sigma21_q",100,0,0.2);
 	TH1D* sigma21_u = new TH1D("sigma21_u","sigma21_u",100,0,0.2);
@@ -177,13 +177,13 @@ void qgl()
 	h9->GetXaxis()->SetRangeUser(0,0.2);
 
 	TCanvas *c9 = tdrCanvas("c9",h9,0,33);
-	tdrDraw(gs,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(qs,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(gs,"P",kFullCircle,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(qs,"P",kFullCircle,kBlue,kSolid,-1,3005,kBlue);
 	qs->Scale(1/qs->Integral());
 	gs->Scale(1/gs->Integral());
 	
-	tdrDraw(gs1,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(qs1,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(gs1,"P",kOpenSquare,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(qs1,"P",kOpenSquare,kBlue,kSolid,-1,3005,kBlue);
 	qs1->Scale(1/qs1->Integral());
 	gs1->Scale(1/gs1->Integral());
 
@@ -205,13 +205,13 @@ void qgl()
 	h10->GetXaxis()->SetRangeUser(0,60);
 
 	TCanvas *c10 = tdrCanvas("c10",h10,0,33);
-	tdrDraw(gm,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(qm,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(gm,"P",kFullCircle,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(qm,"P",kFullCircle,kBlue,kSolid,-1,3005,kBlue);
 	qm->Scale(1/qm->Integral());
 	gm->Scale(1/gm->Integral());
 	
-	tdrDraw(gm1,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(qm1,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(gm1,"P",kOpenSquare,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(qm1,"P",kOpenSquare,kBlue,kSolid,-1,3005,kBlue);
 	qm1->Scale(1/qm1->Integral());
 	gm1->Scale(1/gm1->Integral());
 
@@ -233,13 +233,13 @@ void qgl()
 	h11->GetXaxis()->SetRangeUser(0,30);
 
 	TCanvas *c11 = tdrCanvas("c11",h11,0,33);
-	tdrDraw(gPTD,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(qPTD,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(gPTD,"P",kFullCircle,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(qPTD,"P",kFullCircle,kBlue,kSolid,-1,3005,kBlue);
 	qPTD->Scale(1/qPTD->Integral());
 	gPTD->Scale(1/gPTD->Integral());
 	
-	tdrDraw(gPTD1,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(qPTD1,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
+	tdrDraw(gPTD1,"P",kOpenSquare,kRed-3,kSolid,-1,3003,kRed-3);
+	tdrDraw(qPTD1,"P",kOpenSquare,kBlue,kSolid,-1,3005,kBlue);
 	qPTD1->Scale(1/qPTD1->Integral());
 	gPTD1->Scale(1/gPTD1->Integral());
 }
