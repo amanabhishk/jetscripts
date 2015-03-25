@@ -4,6 +4,8 @@
 #include <iostream>
 #include "TTree.h"
 #include "TLorentzVector.h"
+#include "TStopwatch.h"
+
 // #include "TH1.h"
 
 
@@ -48,20 +50,31 @@ void plot_Zjet_channels()
   	tree21->SetBranchAddress("phi", phi);
   	tree21->SetBranchAddress("m", m);
 
-	TLorentzVector v1;    
-	for(unsigned int x=0; x != N21; ++x)
+	TStopwatch t;
+
+	TLorentzVector v1;  
+	unsigned int limit;  							//Relies on the status 
+	for(unsigned int x= 0; x != N21; ++x)			//2 particles being stored in the end 
 	{
 		tree21->GetEntry(x);
 		TLorentzVector v;
-		for(unsigned int y = 0; y< eventParticleCount; ++y)
+		limit = 0;
+		for(unsigned int y = eventParticleCount-1; y != 0; --y)
 		{
 			if(status[y]==2)
 			{
 				v1.SetPtEtaPhiM(pT[y],eta[y],phi[y],m[y]);
 				v += v1;
+				++limit;
+			}
+			if(limit==2) 
+			{
+				//cout<<y<<"/"<<eventParticleCount<<endl;
+				break; 
 			}
 		}
 		Z21->Fill(v.Pt(),weight);
+
 		//cout<<v.Pt()*weight<<endl;
 	}
 
@@ -81,22 +94,32 @@ void plot_Zjet_channels()
   	tree22->SetBranchAddress("m", m);
 
  
-	for(unsigned int x=0; x != N22; ++x)
+	
+	for(unsigned int x=0; x != N22 ; ++x)
 	{
+		limit = 0;
 		tree22->GetEntry(x);
 		TLorentzVector v2;
-		for(unsigned int y = 0; y< eventParticleCount; ++y)
+		for(unsigned int y = eventParticleCount-1; y != 0; --y)
 		{
 			if(status[y]==2)
 			{
 				v1.SetPtEtaPhiM(pT[y],eta[y],phi[y],m[y]);
 				v2 += v1;
+				++limit;
+			}
+			if(limit==2) 
+			{
+				//cout<<y<<"/"<<eventParticleCount<<endl;
+				break; 
 			}
 		}
+		
 		Z22->Fill(v2.Pt(),weight);
 		
 	}
-
+	cout<<t.RealTime();
+	//cout<<(std::clock()-start)/CLOCKS_PER_SEC;
 
 	// TCanvas *c1 = new TCanvas("c1", "c1",900, 700);
 	// c1->Divide(1,2);
