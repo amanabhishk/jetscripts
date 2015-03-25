@@ -147,14 +147,14 @@ void compare()
 			
 			if(t%3==2) 
 			{
-				TLegend* leg = tdrLeg(0.88+0.1,0.72,0.675+0.1,0.30+0.045*4);
+				TLegend* leg = tdrLeg(0.88+0.05,0.72,0.675+0.05,0.30+0.045*4);
 				leg->SetHeader("gluon");
 				leg->AddEntry(plots[t-2][0][l],"Z+jet","P");
 				leg->AddEntry(plots[t-1][0][l],"#gamma+jet","P");
 				leg->AddEntry(plots[t][0][l],"dijet","P");
 				leg->Draw();
 
-				TLegend* gel = tdrLeg(0.88+0.1,0.48,0.675+0.1,0.24);
+				TLegend* gel = tdrLeg(0.88+0.05,0.48,0.675+0.05,0.24);
 				gel->SetHeader("quark");
 				gel->AddEntry(plots[t-2][1][l],"Z+jet","P");
 				gel->AddEntry(plots[t-1][1][l],"#gamma+jet","P");
