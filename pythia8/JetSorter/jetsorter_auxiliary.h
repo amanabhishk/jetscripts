@@ -442,3 +442,24 @@ void printTime(int total, const int& events){
   cout<<"Done in "<<h<<" hours "<<min<<" minutes "<<sec<<" seconds."<<endl;
   cout<<total*100/double(events)<<"seconds/1000 events.\n";
 }
+
+double rho(const vector<fastjet::PseudoJet>& jet)
+{
+  vector<double> temp;
+  for(unsigned int i=0; i != jet.size(); ++i)
+  {
+    if(jet[i].has_area()) temp.push_back(jet[i].pt()/jet[i].area());
+  }
+  
+  if(temp.size()==0) return 0;
+  sort(temp.begin(),temp.end());
+  
+  if(jet.size()%2 == 0)
+  {
+    return (temp[jet.size()/2]+temp[(jet.size()/2)-1])/2.0;
+  }
+  else
+  {
+    return temp[jet.size()/2];
+  }
+}

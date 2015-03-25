@@ -15,6 +15,8 @@
 #include <ctime>
 // FastJet interface
 #include "Pythia8/FastJet3.h"
+#include "fastjet/ClusterSequenceArea.hh"
+#include "fastjet/Selector.hh"
 
 // ROOT, for histogramming.
 #include "TROOT.h"
@@ -41,6 +43,7 @@
 
 
 using namespace Pythia8;
+using namespace fastjet;
 
 int main(int argc, char* argv[]) 
 {
@@ -71,7 +74,10 @@ int main(int argc, char* argv[])
   bool ZjetCriteria;     //selection of Z+jet events
 
   // fastjet setup
-  fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
+  double ghost_maxrap = 1;
+  fastjet::VoronoiAreaSpec area_spec(ghost_maxrap);
+  fastjet::AreaDefinition area_def(voronoi_area, area_spec);
+  fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
   TFile *f = new TFile(options[1]);              //input file with events
@@ -98,13 +104,14 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
   // unsigned int limit = 20;
-  float Jw, JpT, JpTD, Jsigma2[] = {0,0};
+  float Jw, JpT, JpTD, Jrho, Jsigma2[] = {0,0};
   unsigned int Jmul[] = {0,0};
   unsigned char Jflavor;
 
   TTree* tree = new TTree("tree","tree");
   tree->Branch("jet_weight", &Jw , "jet_weight/F" );
   tree->Branch("jet_pT", &JpT , "jet_pT/F" );
+  tree->Branch("rho", &Jrho , "rho/F" );
   tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
   tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
   tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
@@ -155,7 +162,8 @@ int main(int argc, char* argv[])
     if (fjInputs.size() == 0) assert(false);
     
     vector <fastjet::PseudoJet> unsortedJets, sortedJets;
-    fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
+    fastjet::ClusterSequenceVoronoiArea jetCluster(fjInputs, jetDef, area_spec);
+    //cout<<iEvent<<endl;
 
     unsortedJets = jetCluster.inclusive_jets( pTMin );
     sortedJets = sorted_by_pt(unsortedJets);
@@ -181,8 +189,8 @@ int main(int argc, char* argv[])
 
     vector<fastjet::PseudoJet> jetParts = sortedJets[0].constituents();
     if ( jetParts.size() == 1 ) continue;
-    //if(parton == -1) continue;
-    assert(parton != -1);
+    if(parton == -1) continue;
+    //assert(parton != -1);
     //match with status 23 particles and assign flavor to leading jet only
     double dR = deltaR( phi[parton], sortedJets[0].phi(), eta[parton],sortedJets[0].eta());
 
@@ -198,6 +206,7 @@ int main(int argc, char* argv[])
     Jmul[0] = multiplicity(sortedJets[0],0);
     Jmul[1] = multiplicity(sortedJets[0],2);
     Jflavor = jetFlavor;
+    Jrho = rho(sortedJets);
     JpTD = pTD(sortedJets[0]);
     sigma2(sortedJets[0],Jsigma2);
     tree->Fill();
