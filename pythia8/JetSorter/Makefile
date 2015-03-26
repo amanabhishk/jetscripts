@@ -11,6 +11,7 @@ PYTHIA=$(shell pythia8-config --cflags --libs)
 FASTJET=$(shell fastjet-config --cxxflags --libs)
 
 PYTHIALIB=/usr/local/lib/libpythia8.so
+QCDLIB=/home/aabhishe/fastjet-3.1.0/plugins/QCDaware/QCDAware.o
 
 .SECONDEXPANSION:
 .PHONY: all clean
@@ -36,6 +37,10 @@ dijet_analysis: $$@.cc $(PYTHIALIB)
 
 #Hadron-based definition
 hadronic_def: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+#QCD-aware definition
+QCDaware_def: $$@.cc $(PYTHIALIB) $(QCDLIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
 # Clean.
