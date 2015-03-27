@@ -30,7 +30,7 @@ void plot_Zjet_channels()
 	TH1D* ratio = new TH1D("ratio","ratio",ptBins,ptRange);
 	ratio->Sumw2();
 
-	TFile *f21 = new TFile("40001events_Zjet.root","READ");
+	TFile *f21 = new TFile("1000001events_Zjet.root","READ");
 	assert(f21 && !f21->IsZombie());
 	TTree *tree21 = (TTree*)f21->Get("Events");
 	unsigned int N21 = (unsigned int)tree21->GetEntries(); 
@@ -78,7 +78,7 @@ void plot_Zjet_channels()
 		//cout<<v.Pt()*weight<<endl;
 	}
 
-	TFile *f22 = new TFile("40000events_Zjet.root","READ");
+	TFile *f22 = new TFile("1000002events_Zjet.root","READ");
 	assert(f22 && !f22->IsZombie());
 	TTree *tree22 = (TTree*)f22->Get("Events");
 	unsigned int N22 = (unsigned int)tree22->GetEntries(); 
@@ -137,7 +137,7 @@ void plot_Zjet_channels()
 	setTDRStyle();
 	TH1D *h1 = new TH1D("h1",";p_{T} (GeV);Cross section",100,0,1000);
 	h1->SetMinimum(0.5*1e-7);
-	h1->SetMaximum(1*1e1);
+	h1->SetMaximum(1*1e3);
 	//h1->GetYaxis()->SetNoExponent();
 	//h1->GetXaxis()->SetNoExponent();
 	//h1->GetXaxis()->SetMoreLogLabels(kTRUE);
