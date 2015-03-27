@@ -442,3 +442,37 @@ void printTime(int total, const int& events){
   cout<<"Done in "<<h<<" hours "<<min<<" minutes "<<sec<<" seconds."<<endl;
   cout<<total*100/double(events)<<"seconds/1000 events.\n";
 }
+
+void qcd_aware_clustering_flavor(const fastjet::PseudoJet& jet, TH1D*& h){
+  vector <fastjet::PseudoJet> componenets;
+  int temp = 0;
+  componenets = jet.constituents();
+  for(unsigned int m = 0; m != componenets.size(); ++m)
+  {
+    if(componenets[m].user_index()==0) continue;
+    else
+    {
+      temp++;
+    }
+  }
+  h->Fill(temp);
+}
+
+unsigned int hadron_count(const vector<fastjet::PseudoJet>& jets){
+  unsigned int output = 0, check = 0;
+  
+  for(unsigned int x = 0; x != jets.size(); ++x)
+  {
+    if(jets[x].pt()<2000) break;
+    if(jets[x].pt()>2500) continue;
+    ++check;
+    vector<fastjet::PseudoJet> parts = jets[x].constituents();
+
+    for(unsigned int y = 0; y != parts.size(); ++y)
+    {
+      if(isHadron(parts[y].user_index()) && parts[y].pt()>100) ++output;
+    }
+  }
+  //cout<<output<<endl;
+  return output;
+}

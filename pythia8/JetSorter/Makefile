@@ -43,6 +43,10 @@ hadronic_def: $$@.cc $(PYTHIALIB)
 QCDaware_def: $$@.cc $(PYTHIALIB) $(QCDLIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
+extra_task: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
+
 # Clean.
 clean:
 	rm -f *.log *.exe *.d *.so
