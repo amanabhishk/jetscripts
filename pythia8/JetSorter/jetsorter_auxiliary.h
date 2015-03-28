@@ -34,6 +34,10 @@
 #include "TMatrix.h"
 #include "TMatrixDSymEigen.h"
 
+#include "constants.h"
+#include "TTree.h"
+#include "TLorentzVector.h"
+
 using namespace Pythia8;
 
 
@@ -412,3 +416,114 @@ unsigned int hadron_count(const vector<fastjet::PseudoJet>& jets){
   //cout<<output<<endl;
   return output;
 }
+
+struct clustered_info
+{
+    vector<int> leptonList;
+    int gamma;
+    vector <fastjet::PseudoJet> sortedJets;
+    vector <unsigned char> jetFlavor;
+    float weight;
+};
+
+
+bool is_good_event(float* pT, float* eta, float* phi, float* m, struct clustered_info data)
+{
+  if(sample == 1)
+  {
+    //selecting good dijet events
+    bool dijetCriteria = false;
+    if(data.sortedJets.size()<2) dijetCriteria = false;
+    else if(data.sortedJets.size()>2)
+    {
+     dijetCriteria = deltaPhi(data.sortedJets[0].phi(),data.sortedJets[1].phi())>2.8 && 0.15*abs(data.sortedJets[0].pt()+data.sortedJets[1].pt())>data.sortedJets[2].pt();
+    }
+    else
+    {
+     dijetCriteria = deltaPhi(data.sortedJets[0].phi(),data.sortedJets[1].phi())>2.8;
+    }
+    return dijetCriteria;
+  }
+
+  else if(sample == 2)
+  {
+    //selecting good Z-jet events
+    // Checking sufficient resolution
+    TLorentzVector v1, v2; 
+    if(deltaR(phi[data.leptonList[0]],data.sortedJets[0].phi(),eta[data.leptonList[0]],data.sortedJets[0].eta()) < R) return false;
+    if(deltaR(phi[data.leptonList[1]],data.sortedJets[0].phi(),eta[data.leptonList[1]],data.sortedJets[0].eta()) < R) return false;
+
+    //the pT of the muons are required to be greater than 20 and 10 GeV, respectively
+    if(!((pT[data.leptonList[0]]>20 && pT[data.leptonList[1]]>10) || (pT[data.leptonList[1]]>20 && pT[data.leptonList[0]]>10))) return false;
+
+    //the subleading jet in the event is required to have a pT smaller than 30% of that of the dimuon system.
+    v1.SetPtEtaPhiM(pT[data.leptonList[0]],eta[data.leptonList[0]],phi[data.leptonList[0]],m[data.leptonList[0]]);
+    v2.SetPtEtaPhiM(pT[data.leptonList[1]],eta[data.leptonList[1]],phi[data.leptonList[1]],m[data.leptonList[1]]);
+    if(data.sortedJets[1].pt()>0.3*(v1+v2).Pt()) return false;
+
+    //the dimuon invariant mass is required to fall in the 70-110 GeV range
+    if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) return false;
+    return true;
+  }
+
+  else if(sample == 3)
+  {
+    //selecting good data.gamma-jet events
+    if(data.sortedJets[1].pt()>0.3*pT[data.gamma]) return false;
+    if(deltaR(phi[data.gamma],data.sortedJets[0].phi(),eta[data.gamma],data.sortedJets[0].eta()) < R) return false;
+    return true;
+  }
+  
+  else return false;
+}
+
+
+
+class jet_data
+{
+  public:
+
+    void fill()
+    {
+      for(int k = 0; k != data.sortedJets.size(); ++k)
+      {
+        if(sample == 1 && k == 2) break;
+        if((sample == 2 || sample == 3) && k == 1) break; 
+        
+        if(fabs(data.sortedJets[k].eta()) > etaMax) continue;
+        
+        Jw = data.weight;
+        JpT = data.sortedJets[k].pt();
+        Jmul[0] = multiplicity(data.sortedJets[k],0);
+        Jmul[1] = multiplicity(data.sortedJets[k],2);
+        Jflavor = data.jetFlavor[k];
+        JpTD = pTD(data.sortedJets[k]);
+        sigma2(data.sortedJets[k],Jsigma2);
+        tree->Fill();
+      }
+    }
+
+    jet_data(struct clustered_info d)
+    {
+      data = d;
+      tree->Branch("jet_weight", &Jw , "jet_weight/F" );
+      tree->Branch("jet_pT", &JpT , "jet_pT/F" );
+      tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
+      tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
+      tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
+      tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" ); 
+    }
+
+    ~jet_data()
+    {
+      tree->AutoSave("Overwrite");
+    }
+  
+  protected:
+    float Jw, JpT, JpTD, Jsigma2[2];
+    unsigned int Jmul[0];
+    unsigned char Jflavor;
+    TTree* tree = new TTree("tree","tree");
+    struct clustered_info data;
+
+};
