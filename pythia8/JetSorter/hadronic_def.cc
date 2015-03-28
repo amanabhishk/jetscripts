@@ -15,6 +15,7 @@
 #include <ctime>
 // FastJet interface
 #include "Pythia8/FastJet3.h"
+#include "fastjet/tools/GridMedianBackgroundEstimator.hh"
 
 // ROOT, for histogramming.
 #include "TROOT.h"
@@ -74,6 +75,7 @@ int main(int argc, char* argv[])
 
   // fastjet setup
   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
+  fastjet::GridMedianBackgroundEstimator find_rho(5,0.85);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
   TFile *f = new TFile(options[1]);              //input file with events
@@ -175,6 +177,7 @@ int main(int argc, char* argv[])
       //clustering using fastjet
       vector <fastjet::PseudoJet> unsortedJets, sortedJets;
       fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
+      find_rho.set_particles(fjInputs);
 
       unsortedJets = jetCluster.inclusive_jets( pTMin );
       sortedJets = sorted_by_pt(unsortedJets);
@@ -280,7 +283,7 @@ int main(int argc, char* argv[])
         Jmul[0] = multiplicity(sortedJets[0],0);
         Jmul[1] = multiplicity(sortedJets[0],2);
         Jflavor = jetFlavor[0];
-        JpTD = pTD(sortedJets[0]);
+        JpTD = find_rho.rho(sortedJets[0]); //pTD(sortedJets[0]);
         sigma2(sortedJets[0],Jsigma2);
         tree->Fill();
       }
