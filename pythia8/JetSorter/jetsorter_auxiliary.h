@@ -36,43 +36,8 @@
 
 using namespace Pythia8;
 
-// From CMSSW
-class PtHatReweightUserHook : public UserHooks
-{ 
-  public:
-  PtHatReweightUserHook(double _pt = 15, double _power = 4.5) :
-  pt(_pt), power(_power) {}
-  virtual ~PtHatReweightUserHook() {}
-  
-  virtual bool canBiasSelection() { return true; }
-  
-  virtual double biasSelectionBy(const SigmaProcess* sigmaProcessPtr,
-    const PhaseSpace* phaseSpacePtr, bool inEvent)
-  { 
-    //the variable selBias of the base class should be used;
-    if ((sigmaProcessPtr->nFinal() == 2)) {
-    selBias = pow(phaseSpacePtr->pTHat() / pt, power);
-    return selBias;
-    }
-    selBias = 1.;
-    return selBias;
-  }
-  
-  private:
-  double pt, power;
-};
 
-// A function that checks whether a photon is originated from a pi0 and that
-// the energy of the photon-pair corresponds to the pion. returns 0 if
-// the origin is not a pion with good energy and 1 if it is
-int gammaChecker( Event &event, int idx ){
-  int mother = event[idx].mother1();
-  if ( event[mother].id() != 111 ) return 0;
-  double eDifference = abs( event[mother].e() -
-    event[event[mother].daughter1()].e() - event[event[mother].daughter2()].e() );
-  if ( eDifference < 0.001 ) return 1;
-  return 0;
-}
+
 
 double deltaPhi(double phi1, double phi2){
   double pi = 3.141592;
@@ -101,35 +66,6 @@ double deltaR( double phi1, double phi2, double eta1, double eta2 ){
 
   // cout<<"dEta:"<<dEta<<" dPhi:"<<dPhi<<" dR:"<<dR<<endl;
   return dR;
-}
-
-
-bool ischarge(const int& c)
-{
-  int pdgid = abs(c);//, digit, charge = 0;
-   //photon and neutrinos
-  if(pdgid == 22 || pdgid == 12 ||pdgid == 14 ||pdgid == 16 ) return false;
-  //charged leptons
-  else if(pdgid == 11 ||pdgid == 13 ||pdgid == 15 ) return true; 
-   //charged mesons
-  else if(pdgid == 211 || pdgid == 321 || pdgid == 411 || pdgid == 431 || pdgid == 213 || 
-          pdgid == 323 || pdgid == 521 || pdgid == 541) return true;
-  //neutral mesons
-  else if(pdgid == 311 || pdgid == 421 || pdgid == 111 || pdgid == 221 || pdgid == 331 || 
-          pdgid == 130 || pdgid == 310 || pdgid == 313 || pdgid == 113 || pdgid == 223 || 
-          pdgid == 333 || pdgid == 511 || pdgid == 531  || pdgid == 443|| pdgid == 100553) return false; 
-  //neutral baryons
-  else if(pdgid == 2112 || pdgid == 3122 || pdgid == 3212 || pdgid == 5122 
-          || pdgid == 5232 || pdgid == 4132 || pdgid == 3322) return false;
-  //charged baryons
-  else if(pdgid == 2212 || pdgid == 3112 || pdgid == 3222 || pdgid == 4122 
-          || pdgid == 3312 || pdgid == 5132  || pdgid == 4232|| pdgid == 5332) return true;
-  //No match!!
-  else
-  {
-    cout<<"ischarge: List exhausted!! Add this pdgid: "<<c<<endl;
-    return false;
-  }
 }
 
 bool isCharged(const int& c)
