@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
     if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
 
     //the dimuon invariant mass is required to fall in the 70-110 GeV range
-    if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) continue;
+    if(fabs((v1+v2).M())<70 || fabs((v1+v2).M())>110) continue;
 
     unsigned short int jetFlavor = 0;
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
       jetFlavor = abs(id[parton]);
     }//tag tagging loop
     
-    if(sortedJets[0].eta() > etaMax) continue;
+    if(fabs(sortedJets[0].eta()) > etaMax) continue;
     
     Jw = weight;
     JpT = sortedJets[0].pt();

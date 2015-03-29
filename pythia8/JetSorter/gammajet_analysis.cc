@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
       jetFlavor = abs(id[parton]);
     }//tag tagging loop
     
-    if(sortedJets[0].eta() > etaMax) continue;
+    if(fabs(sortedJets[0].eta()) > etaMax) continue;
 
     Jw = weight;
     JpT = sortedJets[0].pt();

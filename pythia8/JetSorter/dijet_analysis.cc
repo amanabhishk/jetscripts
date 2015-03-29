@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
     if(sortedJets.size()<2) dijetCriteria = false;
     else if(sortedJets.size()>2)
     {
-     dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
+     dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*fabs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
     }
     else
     {
@@ -189,15 +189,15 @@ int main(int argc, char* argv[])
     for(int k = 0; k != jetFlavor.size(); ++k)
     {
       if(k == partonList.size()) break;
-      if(sortedJets[k].eta() > etaMax) continue;
+      if(fabs(sortedJets[k].eta()) > etaMax) continue;
       
       Jw = weight;
-      JpT = sortedJets[0].pt();
-      Jmul[0] = multiplicity(sortedJets[0],0);
-      Jmul[1] = multiplicity(sortedJets[0],2);
-      Jflavor = jetFlavor[0];
-      JpTD = pTD(sortedJets[0]);
-      sigma2(sortedJets[0],Jsigma2);
+      JpT = sortedJets[k].pt();
+      Jmul[0] = multiplicity(sortedJets[k],0);
+      Jmul[1] = multiplicity(sortedJets[k],2);
+      Jflavor = jetFlavor[k];
+      JpTD = pTD(sortedJets[k]);
+      sigma2(sortedJets[k],Jsigma2);
       tree->Fill();
     }
   }//Event loop
