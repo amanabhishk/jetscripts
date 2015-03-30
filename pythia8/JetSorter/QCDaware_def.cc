@@ -59,20 +59,6 @@ int main(int argc, char* argv[])
   unsigned short int sample = atoi(options[3]);
 
   TApplication theApp("event_generation", &argc, argv);
-  unsigned int size = 2000;
-  
-  int ptBins = 48.;
-  const double ptRange[]=
-    {18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
-    97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468,
-    507, 548, 592, 638, 686, 737, 790, 846, 905, 967,
-    1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
-
-  double R      = 0.5;    // Jet size.
-  double pTMin  = 10.0;   // Min jet pT
-  double etaMax = 1.3;    // Pseudorapidity range
-  int count;              //keeping track of tagged jets;
-  bool dijetCriteria;     //selection of good dijet events
 
   // fastjet setup
   //QCD aware clustering of status 70 particles
@@ -110,14 +96,14 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
 
-  jet_data QCDaware_def_jets;
+  jet_data QCDaware_def_jets; // class for storing jet data
 
   //TH1D* efficiency = new TH1D("tagged jets", "tagged jets", 100,0,10);
   //TH1D* jet_count = new TH1D("jet_count","jet_count",100,0,50);
 
-  TLorentzVector v, v1, v2;       //for converting to cartesian coordinates
+  TLorentzVector v;       //for converting to cartesian coordinates
   vector<int> leptonList;
-  int gamma = -1;
+  int gamma;
   fastjet::PseudoJet particleTemp;
 
   /**************************************END OF SET-UP**************************************/
@@ -176,10 +162,7 @@ int main(int argc, char* argv[])
 
     //Adding QCD clustered jets as ghost particles to normal clustering which will follow.
     //jet_count->Fill(jets_qcd.size());
-    if(jets_qcd.size()==0)
-    {
-      continue;
-    }
+    if(jets_qcd.size()==0) continue;
 
     // for(unsigned int k = 0; k != jets_qcd.size(); ++k)
     // {
@@ -201,14 +184,13 @@ int main(int argc, char* argv[])
     clusteredData.gamma = gamma;
     clusteredData.sortedJets = sortedJets;
 
-    if(!is_good_event(pT,eta,phi,m,clusteredData,sample));
+    if(!is_good_event(pT,eta,phi,m,clusteredData,sample)) continue;
     
     //flavor tagging begins
     vector <int> jetFlavor(sortedJets.size(),0);
 
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
-      //if(pTD(sortedJets) != sortedJets.size()) cout<< "NO.\n";
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
       if ( jetParts.size() == 1 ) continue;
       
@@ -219,7 +201,6 @@ int main(int argc, char* argv[])
         double dR = deltaR( jets_qcd[k].phi(), sortedJets[i].phi(), jets_qcd[k].eta(),sortedJets[i].eta());
         if ( dR < R/2 ) 
         {
-          // taggedJets-break1);
           if(jetFlavor[i]!=0) 
           {
             jetFlavor[i] = 0;
@@ -227,7 +208,7 @@ int main(int argc, char* argv[])
           }
           jetFlavor[i] = abs(jets_qcd[k].user_index());
         }
-      }//tag tagging loop
+      }//tagging loop
     }//Loop over leading jets
 
 

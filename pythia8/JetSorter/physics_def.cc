@@ -61,7 +61,6 @@ int main(int argc, char* argv[])
 
   // fastjet setup
   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
-  fastjet::GridMedianBackgroundEstimator find_rho(5,0.85);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
   TFile *f = new TFile(options[1]);              //input file with events
@@ -90,12 +89,12 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
 
-  jet_data phy_def_jets;
+  jet_data phy_def_jets; //class for storing jet data
 
-  TLorentzVector v, v1, v2;       //for converting to cartesian coordinates
-  vector<int> leptonList;
-  vector<int> partonList;
-  int gamma;
+  TLorentzVector v;       
+  vector<int> leptonList;   //Z+jet
+  vector<int> partonList;   
+  int gamma;                //gamma+jet
 
   /**************************************END OF SET-UP**************************************/
 
@@ -114,6 +113,7 @@ int main(int argc, char* argv[])
       leptonList.resize(0);
       fjInputs.resize(0);
       partonList.resize(0);
+
       //select relevant events and make partonList and fjInputs vectors
       for (unsigned int i = 0; i != eventParticleCount; ++i) 
       {
@@ -136,6 +136,7 @@ int main(int argc, char* argv[])
       }//Event selector loop
     
       if (fjInputs.size() == 0) continue;
+      
       //clustering using fastjet
       vector <fastjet::PseudoJet> unsortedJets, sortedJets;
       fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
@@ -150,11 +151,9 @@ int main(int argc, char* argv[])
       clusteredData.gamma = gamma;
       clusteredData.sortedJets = sortedJets;
 
-      if(!is_good_event(pT,eta,phi,m,clusteredData,sample));
+      if(!is_good_event(pT,eta,phi,m,clusteredData,sample)) continue;
 
       vector <int> jetFlavor(sortedJets.size(),0);
-
-      cout << std::setprecision(10);
       
       //flavor tagging begins
       for (unsigned int i = 0; i != sortedJets.size(); ++i) 
@@ -176,7 +175,7 @@ int main(int argc, char* argv[])
             }    
             else jetFlavor[i] = abs(id[partonList[k]]);
           }
-        }//tag tagging loop
+        }//tagging loop
       }//Loop over leading jets
       
       //store jet data

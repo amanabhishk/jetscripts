@@ -58,24 +58,10 @@ int main(int argc, char* argv[])
   unsigned short int sample = atoi(options[3]);
 
   TApplication theApp("event_generation", &argc, argv);
-  unsigned int size = 2000;
-  
-  int ptBins = 48.;
-  const double ptRange[]=
-    {18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
-    97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468,
-    507, 548, 592, 638, 686, 737, 790, 846, 905, 967,
-    1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
-
-  double R      = 0.5;    // Jet size.
-  double pTMin  = 10.0;   // Min jet pT
-  double etaMax = 1.3;    // Pseudorapidity range
-  int count;              //keeping track of tagged jets;
-  bool dijetCriteria;     //selection of good dijet events
 
   // fastjet setup
   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, R, fastjet::E_scheme, fastjet::Best);
-  fastjet::GridMedianBackgroundEstimator find_rho(5,0.85);
+  //fastjet::GridMedianBackgroundEstimator find_rho(5,0.85);
   std::vector <fastjet::PseudoJet> fjInputs; //particles that will be clustered into jets
 
   TFile *f = new TFile(options[1]);              //input file with events
@@ -104,11 +90,11 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
 
-  jet_data hadron_def_jets;
+  jet_data hadron_def_jets; //class for storing jet data
 
-  TLorentzVector v, v1, v2;       //for converting to cartesian coordinates
+  TLorentzVector v;       //for converting to cartesian coordinates
   vector<int> leptonList;
-  int gamma = -1;
+  int gamma;
 
   /**************************************END OF SET-UP**************************************/
 
@@ -161,10 +147,11 @@ int main(int argc, char* argv[])
       }//Event selector loop
     
       if (fjInputs.size() == 0) continue;
+      
       //clustering using fastjet
       vector <fastjet::PseudoJet> unsortedJets, sortedJets;
       fastjet::ClusterSequence jetCluster(fjInputs, jetDef);
-      find_rho.set_particles(fjInputs);
+      //find_rho.set_particles(fjInputs);
 
       unsortedJets = jetCluster.inclusive_jets( pTMin );
       sortedJets = sorted_by_pt(unsortedJets);
@@ -176,11 +163,9 @@ int main(int argc, char* argv[])
       clusteredData.gamma = gamma;
       clusteredData.sortedJets = sortedJets;
 
-      if(!is_good_event(pT,eta,phi,m,clusteredData,sample));
+      if(!is_good_event(pT,eta,phi,m,clusteredData,sample)) continue;
 
       vector <int> jetFlavor(sortedJets.size(),0);
-
-      cout << std::setprecision(10);
       
       //flavor tagging begins
       int flavor_from_hadron, flavor_from_parton, index;
@@ -190,12 +175,12 @@ int main(int argc, char* argv[])
         jetParts = sorted_by_pt(jetParts);
 
         if ( jetParts.size() == 1 ) continue;
-        if(i>1) break;
+        if( i>1 ) break;
         
         flavor_from_parton = 0;
         flavor_from_hadron = 0;
         
-        for(int p = 0; p != jetParts.size(); ++p)
+        for(unsigned int p = 0; p != jetParts.size(); ++p)
         {
           index = jetParts[p].user_index();
           if(index == 4 || index == 5)
@@ -211,7 +196,7 @@ int main(int argc, char* argv[])
 
         if(flavor_from_parton == 0)
         {
-          for(int p = 0; p != jetParts.size(); ++p)
+          for(unsigned int p = 0; p != jetParts.size(); ++p)
           {
             index = jetParts[p].user_index();
             if(index > 99) 
