@@ -140,10 +140,8 @@ int main(int argc, char* argv[])
       //select relevant events and make partonList and fjInputs vectors
       for (unsigned int i = 0; i != eventParticleCount; ++i) 
       {
-        //if(isCharm(id[i]) && abs(id[i]) != 4)cout<<" "<<id[i]<<endl;
         if (status[i] == 70) 
         {   
-          //if(abs(id[i])>99)cout<<abs(id[i])<<" ";
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           v *= pow(10,-18);
           fastjet::PseudoJet particleTemp = v;
@@ -152,7 +150,6 @@ int main(int argc, char* argv[])
         }
         else if (status[i] == 4 || status[i] == 5 || status[i] == 6) 
         {   
-          //if(abs(id[i])>99)cout<<abs(id[i])<<" ";
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           v *= pow(10,-18);
           fastjet::PseudoJet particleTemp = v;
@@ -190,7 +187,7 @@ int main(int argc, char* argv[])
         if(sortedJets.size()<2) dijetCriteria = false;
         else if(sortedJets.size()>2)
         {
-         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.1*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
+         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.15*fabs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
         }
         else
         {
@@ -222,7 +219,7 @@ int main(int argc, char* argv[])
         if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
 
         //the dimuon invariant mass is required to fall in the 70-110 GeV range
-        if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) continue;
+        if(fabs((v1+v2).M())<70 || fabs((v1+v2).M())>110) continue;
       }
 
       vector <int> jetFlavor(sortedJets.size(),0);
@@ -273,18 +270,22 @@ int main(int argc, char* argv[])
       }//Loop over leading jets
       
       //store jet data
-      for(int k = 0; k != jetFlavor.size(); ++k)
+      for(int k = 0; k != sortedJets.size(); ++k)
       {
-        if(k > 1) break;
-        if(sortedJets[k].eta() > etaMax) continue;
+        if(sample == 1 && k == 2) break;
+        if((sample == 2 || sample == 3) && k == 1) break; 
+        
+        if(fabs(sortedJets[k].eta()) > etaMax) continue;
         
         Jw = weight;
-        JpT = sortedJets[0].pt();
-        Jmul[0] = multiplicity(sortedJets[0],0);
-        Jmul[1] = multiplicity(sortedJets[0],2);
-        Jflavor = jetFlavor[0];
-        JpTD = pTD(sortedJets[0]);
-        sigma2(sortedJets[0],Jsigma2);
+        //jetIndex = k+1;
+        JpT = sortedJets[k].pt();
+        Jmul[0] = multiplicity(sortedJets[k],0);
+        Jmul[1] = multiplicity(sortedJets[k],2);
+        Jflavor = jetFlavor[k];
+        //if(sortedJets[k].user_index()>21) cout<<sortedJets[k].user_index()<<endl;
+        JpTD = pTD(sortedJets[k]);
+        sigma2(sortedJets[k],Jsigma2);
         tree->Fill();
       }
     }//Event loop
