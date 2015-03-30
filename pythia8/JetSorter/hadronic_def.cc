@@ -104,17 +104,7 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
 
-  float Jw, JpT, JpTD, Jsigma2[]={0,0};
-  unsigned int Jmul[]={0,0}, jetcount = 0;
-  unsigned char Jflavor;
-
-  TTree* tree = new TTree("tree","tree");
-  tree->Branch("jet_weight", &Jw , "jet_weight/F" );
-  tree->Branch("jet_pT", &JpT , "jet_pT/F" );
-  tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
-  tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
-  tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
-  tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
+  jet_data hadron_def_jets;
 
   TLorentzVector v, v1, v2;       //for converting to cartesian coordinates
   vector<int> leptonList;
@@ -181,46 +171,12 @@ int main(int argc, char* argv[])
 
       if(sortedJets.size()==0)  continue;
 
-      if(sample == 1)
-      {
-        //selecting good dijet events
-        if(sortedJets.size()<2) dijetCriteria = false;
-        else if(sortedJets.size()>2)
-        {
-         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.15*fabs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
-        }
-        else
-        {
-         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
-        }
-        if(!dijetCriteria) continue;
-      }
-      
-      if(sample == 3)
-      {
-        //selecting good gamma-jet events
-        if(sortedJets[1].pt()>0.3*pT[gamma]) continue;
-        if(deltaR(phi[gamma],sortedJets[0].phi(),eta[gamma],sortedJets[0].eta()) < R) continue;
-      }
+      struct clustered_info clusteredData;
+      clusteredData.leptonList = leptonList;
+      clusteredData.gamma = gamma;
+      clusteredData.sortedJets = sortedJets;
 
-      if(sample == 2)
-      {
-        //selecting good Z-jet events
-        // Checking sufficient resolution
-        if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
-        if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
-
-        //the pT of the muons are required to be greater than 20 and 10 GeV, respectively
-        if(!((pT[leptonList[0]]>20 && pT[leptonList[1]]>10) || (pT[leptonList[1]]>20 && pT[leptonList[0]]>10))) continue;
-
-        //the subleading jet in the event is required to have a pT smaller than 30% of that of the dimuon system.
-        v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
-        v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
-        if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
-
-        //the dimuon invariant mass is required to fall in the 70-110 GeV range
-        if(fabs((v1+v2).M())<70 || fabs((v1+v2).M())>110) continue;
-      }
+      if(!is_good_event(pT,eta,phi,m,clusteredData,sample));
 
       vector <int> jetFlavor(sortedJets.size(),0);
 
@@ -270,28 +226,11 @@ int main(int argc, char* argv[])
       }//Loop over leading jets
       
       //store jet data
-      for(int k = 0; k != sortedJets.size(); ++k)
-      {
-        if(sample == 1 && k == 2) break;
-        if((sample == 2 || sample == 3) && k == 1) break; 
-        
-        if(fabs(sortedJets[k].eta()) > etaMax) continue;
-        
-        Jw = weight;
-        //jetIndex = k+1;
-        JpT = sortedJets[k].pt();
-        Jmul[0] = multiplicity(sortedJets[k],0);
-        Jmul[1] = multiplicity(sortedJets[k],2);
-        Jflavor = jetFlavor[k];
-        //if(sortedJets[k].user_index()>21) cout<<sortedJets[k].user_index()<<endl;
-        JpTD = pTD(sortedJets[k]);
-        sigma2(sortedJets[k],Jsigma2);
-        tree->Fill();
-      }
+      clusteredData.jetFlavor = jetFlavor;
+      hadron_def_jets.fill(clusteredData,sample);
     }//Event loop
     
-  cout<<jetcount<<endl;
-  tree->AutoSave("Overwrite");
+  hadron_def_jets.save();
   outFile.Close();
   printTime((std::clock()-start));
   cout<<"Analysis stored in "<<options[2]<<endl;

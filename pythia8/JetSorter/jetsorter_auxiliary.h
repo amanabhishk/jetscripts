@@ -422,21 +422,20 @@ struct clustered_info
     vector<int> leptonList;
     int gamma;
     vector <fastjet::PseudoJet> sortedJets;
-    vector <unsigned char> jetFlavor;
+    vector <int> jetFlavor;
     float weight;
 };
 
 
-bool is_good_event(float* pT, float* eta, float* phi, float* m, struct clustered_info data)
+bool is_good_event(const float* pT, const float* eta, const float* phi, const float* m, const struct clustered_info& data, const int& sample)
 {
-  if(sample == 1)
+  if(sample == 1)//selecting good dijet events
   {
-    //selecting good dijet events
     bool dijetCriteria = false;
     if(data.sortedJets.size()<2) dijetCriteria = false;
     else if(data.sortedJets.size()>2)
     {
-     dijetCriteria = deltaPhi(data.sortedJets[0].phi(),data.sortedJets[1].phi())>2.8 && 0.15*abs(data.sortedJets[0].pt()+data.sortedJets[1].pt())>data.sortedJets[2].pt();
+     dijetCriteria = deltaPhi(data.sortedJets[0].phi(),data.sortedJets[1].phi())>2.8 && 0.15*fabs(data.sortedJets[0].pt()+data.sortedJets[1].pt())>data.sortedJets[2].pt();
     }
     else
     {
@@ -445,9 +444,8 @@ bool is_good_event(float* pT, float* eta, float* phi, float* m, struct clustered
     return dijetCriteria;
   }
 
-  else if(sample == 2)
+  else if(sample == 2)//selecting good Z-jet events
   {
-    //selecting good Z-jet events
     // Checking sufficient resolution
     TLorentzVector v1, v2; 
     if(deltaR(phi[data.leptonList[0]],data.sortedJets[0].phi(),eta[data.leptonList[0]],data.sortedJets[0].eta()) < R) return false;
@@ -462,13 +460,12 @@ bool is_good_event(float* pT, float* eta, float* phi, float* m, struct clustered
     if(data.sortedJets[1].pt()>0.3*(v1+v2).Pt()) return false;
 
     //the dimuon invariant mass is required to fall in the 70-110 GeV range
-    if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) return false;
+    if(fabs((v1+v2).M())<70 || fabs((v1+v2).M())>110) return false;
     return true;
   }
 
-  else if(sample == 3)
+  else if(sample == 3)//selecting good data.gamma-jet events
   {
-    //selecting good data.gamma-jet events
     if(data.sortedJets[1].pt()>0.3*pT[data.gamma]) return false;
     if(deltaR(phi[data.gamma],data.sortedJets[0].phi(),eta[data.gamma],data.sortedJets[0].eta()) < R) return false;
     return true;
@@ -483,7 +480,7 @@ class jet_data
 {
   public:
 
-    void fill()
+    void fill(const struct clustered_info& data, const int& sample)
     {
       for(int k = 0; k != data.sortedJets.size(); ++k)
       {
@@ -503,9 +500,8 @@ class jet_data
       }
     }
 
-    jet_data(struct clustered_info d)
+    jet_data()
     {
-      data = d;
       tree->Branch("jet_weight", &Jw , "jet_weight/F" );
       tree->Branch("jet_pT", &JpT , "jet_pT/F" );
       tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
@@ -514,16 +510,15 @@ class jet_data
       tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" ); 
     }
 
-    ~jet_data()
+    void save()
     {
       tree->AutoSave("Overwrite");
     }
   
   protected:
     float Jw, JpT, JpTD, Jsigma2[2];
-    unsigned int Jmul[0];
+    unsigned int Jmul[2];
     unsigned char Jflavor;
     TTree* tree = new TTree("tree","tree");
-    struct clustered_info data;
 
 };
