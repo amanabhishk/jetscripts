@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
         if(sortedJets.size()<2) dijetCriteria = false;
         else if(sortedJets.size()>2)
         {
-         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.15*abs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
+         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.15*fabs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
         }
         else
         {
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
         if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
 
         //the dimuon invariant mass is required to fall in the 70-110 GeV range
-        if(abs((v1+v2).M())<70 || abs((v1+v2).M())>110) continue;
+        if(fabs((v1+v2).M())<70 || fabs((v1+v2).M())>110) continue;
       }
 
       cout << std::setprecision(10);
