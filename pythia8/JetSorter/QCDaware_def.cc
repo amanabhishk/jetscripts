@@ -110,21 +110,10 @@ int main(int argc, char* argv[])
   Events->SetBranchAddress("m", m);
 
 
-  float Jw, JpT, JpTD, Jsigma2[]={0,0};
-  unsigned int Jmul[]={0,0}, jetcount = 0, jetIndex;
-  unsigned char Jflavor;
+  jet_data QCDaware_def_jets;
 
-  TTree* tree = new TTree("tree","tree");
-  tree->Branch("jet_weight", &Jw , "jet_weight/F" );
-  tree->Branch("jet_pT", &JpT , "jet_pT/F" );
-  tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
-  tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
-  tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
-  tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" );
-  //tree->Branch("jet_index", &jetIndex , "jet_index/i" );
-
-  TH1D* efficiency = new TH1D("tagged jets", "tagged jets", 100,0,10);
-  TH1D* jet_count = new TH1D("jet_count","jet_count",100,0,50);
+  //TH1D* efficiency = new TH1D("tagged jets", "tagged jets", 100,0,10);
+  //TH1D* jet_count = new TH1D("jet_count","jet_count",100,0,50);
 
   TLorentzVector v, v1, v2;       //for converting to cartesian coordinates
   vector<int> leptonList;
@@ -133,178 +122,125 @@ int main(int argc, char* argv[])
 
   /**************************************END OF SET-UP**************************************/
 
-    cout<<"Using QCD-aware algorithm.\n";
-    cout<<"Progress:\n";
-    for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
+  cout<<"Using QCD-aware algorithm.\n";
+  cout<<"Progress:\n";
+  for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
+  {
+    
+    if(100*iEvent == 25*nEvent) cout<< "25%\n";
+    if(100*iEvent == 50*nEvent) cout<< "50%\n";
+    if(100*iEvent == 75*nEvent) cout<< "75%\n";
+    if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
+
+    Events->GetEntry(iEvent);
+
+    cout<<iEvent<<endl;
+    leptonList.resize(0);
+    qcd_aware_clustering_input.resize(0);
+    clustering_input.resize(0);
+
+    //select relevant events and make jets_qcd and qcd_aware_clustering_input vectors
+    for (unsigned int i = 0; i != eventParticleCount; ++i) 
     {
-      
-      if(100*iEvent == 25*nEvent) cout<< "25%\n";
-      if(100*iEvent == 50*nEvent) cout<< "50%\n";
-      if(100*iEvent == 75*nEvent) cout<< "75%\n";
-      if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
+      //if(isCharm(id[i]) && abs(id[i]) != 4)cout<<" "<<id[i]<<endl;
+      if (status[i] == 70) 
+      {   
+        v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
+        particleTemp = v;
+        particleTemp.set_user_index(id[i]);
+        qcd_aware_clustering_input.push_back( particleTemp );
+      }
 
-      Events->GetEntry(iEvent);
+      if (status[i] == 1) 
+      {   
+        v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
+        particleTemp = v;
+        particleTemp.set_user_index(0);
+        clustering_input.push_back( particleTemp );
+      }
 
-      cout<<iEvent<<endl;
-      leptonList.resize(0);
-      qcd_aware_clustering_input.resize(0);
-      clustering_input.resize(0);
-
-      //select relevant events and make jets_qcd and qcd_aware_clustering_input vectors
-      for (unsigned int i = 0; i != eventParticleCount; ++i) 
+      if(status[i] == 2)
       {
-        //if(isCharm(id[i]) && abs(id[i]) != 4)cout<<" "<<id[i]<<endl;
-        if (status[i] == 70) 
-        {   
-          v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
-          particleTemp = v;
-          particleTemp.set_user_index(id[i]);
-          qcd_aware_clustering_input.push_back( particleTemp );
-        }
-
-        if (status[i] == 1) 
-        {   
-          v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
-          particleTemp = v;
-          particleTemp.set_user_index(0);
-          clustering_input.push_back( particleTemp );
-        }
-
-        if(status[i] == 2)
-        {
-          leptonList.push_back(i);
-          gamma = i;
-        }
-      }//Event selector loop
+        leptonList.push_back(i);
+        gamma = i;
+      }
+    }//Event selector loop
+  
+    if (qcd_aware_clustering_input.size() == 0) continue;
+    if (clustering_input.size() == 0) continue;
     
-      if (qcd_aware_clustering_input.size() == 0) continue;
-      if (clustering_input.size() == 0) continue;
+    //QCD aware clustering of status 70 particles using fastjet
+    vector <fastjet::PseudoJet> jets_qcd, unsortedJets, sortedJets;
+    fastjet::ClusterSequence qcd_aware_clustering(qcd_aware_clustering_input, qcd_aware_clustering_definition);
+    jets_qcd = qcd_aware_clustering.inclusive_jets( pTMin );
+
+    //Adding QCD clustered jets as ghost particles to normal clustering which will follow.
+    //jet_count->Fill(jets_qcd.size());
+    if(jets_qcd.size()==0)
+    {
+      continue;
+    }
+
+    // for(unsigned int k = 0; k != jets_qcd.size(); ++k)
+    // {
+    //   v.SetPtEtaPhiM(jets_qcd[k].pt(),jets_qcd[k].eta(),jets_qcd[k].phi(),jets_qcd[k].m());
+    //   v *= pow(10,-18);
+    //   particleTemp.set_user_index( jets_qcd[k].user_index() );
+    //   clustering_input.push_back( particleTemp );
+    // }
+
+    //clustering final state particles with ghosts obtained from QCD aware
+    fastjet::ClusterSequence jetCluster(clustering_input, normal_jet_clustering_definition);
+    unsortedJets = jetCluster.inclusive_jets( pTMin );
+    sortedJets = sorted_by_pt(unsortedJets);
+
+    if(sortedJets.size()==0)  continue;
+
+    struct clustered_info clusteredData;
+    clusteredData.leptonList = leptonList;
+    clusteredData.gamma = gamma;
+    clusteredData.sortedJets = sortedJets;
+
+    if(!is_good_event(pT,eta,phi,m,clusteredData,sample));
+    
+    //flavor tagging begins
+    vector <int> jetFlavor(sortedJets.size(),0);
+
+    for (unsigned int i = 0; i != sortedJets.size(); ++i) 
+    {      
+      //if(pTD(sortedJets) != sortedJets.size()) cout<< "NO.\n";
+      vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
+      if ( jetParts.size() == 1 ) continue;
       
-      //QCD aware clustering of status 70 particles using fastjet
-      vector <fastjet::PseudoJet> jets_qcd, unsortedJets, sortedJets;
-      fastjet::ClusterSequence qcd_aware_clustering(qcd_aware_clustering_input, qcd_aware_clustering_definition);
-      jets_qcd = qcd_aware_clustering.inclusive_jets( pTMin );
-
-      //Adding QCD clustered jets as ghost particles to normal clustering which will follow.
-      jet_count->Fill(jets_qcd.size());
-      if(jets_qcd.size()==0)
+      //match with status 23 particles and assign flavor to (2) leading jets
+      for(unsigned int k = 0; k != jets_qcd.size(); ++k)  
       {
-        continue;
-      }
 
-      // for(unsigned int k = 0; k != jets_qcd.size(); ++k)
-      // {
-      //   v.SetPtEtaPhiM(jets_qcd[k].pt(),jets_qcd[k].eta(),jets_qcd[k].phi(),jets_qcd[k].m());
-      //   v *= pow(10,-18);
-      //   particleTemp.set_user_index( jets_qcd[k].user_index() );
-      //   clustering_input.push_back( particleTemp );
-      // }
-
-      //clustering final state particles with ghosts obtained from QCD aware
-      fastjet::ClusterSequence jetCluster(clustering_input, normal_jet_clustering_definition);
-      unsortedJets = jetCluster.inclusive_jets( pTMin );
-      sortedJets = sorted_by_pt(unsortedJets);
-
-      if(sortedJets.size()==0)  continue;
-
-      if(sample == 1)
-      {
-        //selecting good dijet events
-        if(sortedJets.size()<2) dijetCriteria = false;
-        else if(sortedJets.size()>2)
+        double dR = deltaR( jets_qcd[k].phi(), sortedJets[i].phi(), jets_qcd[k].eta(),sortedJets[i].eta());
+        if ( dR < R/2 ) 
         {
-         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8 && 0.15*fabs(sortedJets[0].pt()+sortedJets[1].pt())>sortedJets[2].pt();
-        }
-        else
-        {
-         dijetCriteria = deltaPhi(sortedJets[0].phi(),sortedJets[1].phi())>2.8;
-        }
-        if(!dijetCriteria) continue;
-      }
-      
-      if(sample == 3)
-      {
-        //selecting good gamma-jet events
-        if(sortedJets[1].pt()>0.3*pT[gamma]) continue;
-        if(deltaR(phi[gamma],sortedJets[0].phi(),eta[gamma],sortedJets[0].eta()) < R) continue;
-      }
-
-      if(sample == 2)
-      {
-        //selecting good Z-jet events
-        // Checking sufficient resolution
-        if(deltaR(phi[leptonList[0]],sortedJets[0].phi(),eta[leptonList[0]],sortedJets[0].eta()) < R) continue;
-        if(deltaR(phi[leptonList[1]],sortedJets[0].phi(),eta[leptonList[1]],sortedJets[0].eta()) < R) continue;
-
-        //the pT of the muons are required to be greater than 20 and 10 GeV, respectively
-        if(!((pT[leptonList[0]]>20 && pT[leptonList[1]]>10) || (pT[leptonList[1]]>20 && pT[leptonList[0]]>10))) continue;
-
-        //the subleading jet in the event is required to have a pT smaller than 30% of that of the dimuon system.
-        v1.SetPtEtaPhiM(pT[leptonList[0]],eta[leptonList[0]],phi[leptonList[0]],m[leptonList[0]]);
-        v2.SetPtEtaPhiM(pT[leptonList[1]],eta[leptonList[1]],phi[leptonList[1]],m[leptonList[1]]);
-        if(sortedJets[1].pt()>0.3*(v1+v2).Pt()) continue;
-
-        //the dimuon invariant mass is required to fall in the 70-110 GeV range
-        if(fabs((v1+v2).M())<70 || fabs((v1+v2).M())>110) continue;
-      }
-
-      cout << std::setprecision(10);
-      
-      //flavor tagging begins
-      vector <int> jetFlavor(sortedJets.size(),0);
-
-      for (unsigned int i = 0; i != sortedJets.size(); ++i) 
-      {      
-        //if(pTD(sortedJets) != sortedJets.size()) cout<< "NO.\n";
-        vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
-        if ( jetParts.size() == 1 ) continue;
-        
-        //match with status 23 particles and assign flavor to (2) leading jets
-        for(unsigned int k = 0; k != jets_qcd.size(); ++k)  
-        {
-
-          double dR = deltaR( jets_qcd[k].phi(), sortedJets[i].phi(), jets_qcd[k].eta(),sortedJets[i].eta());
-          if ( dR < R/2 ) 
+          // taggedJets-break1);
+          if(jetFlavor[i]!=0) 
           {
-            // taggedJets-break1);
-            if(jetFlavor[i]!=0) 
-            {
-              jetFlavor[i] = 0;
-              break;    
-            }
-            jetFlavor[i] = abs(jets_qcd[k].user_index());
+            jetFlavor[i] = 0;
+            break;    
           }
-        }//tag tagging loop
-      }//Loop over leading jets
+          jetFlavor[i] = abs(jets_qcd[k].user_index());
+        }
+      }//tag tagging loop
+    }//Loop over leading jets
 
 
-      //store jet data
-      for(int k = 0; k != sortedJets.size(); ++k)
-      {
-        if(sample == 1 && k == 2) break;
-        if((sample == 2 || sample == 3) && k == 1) break; 
-        
-        if(fabs(sortedJets[k].eta()) > etaMax) continue;
-        
-        Jw = weight;
-        //jetIndex = k+1;
-        JpT = sortedJets[k].pt();
-        Jmul[0] = multiplicity(sortedJets[k],0);
-        Jmul[1] = multiplicity(sortedJets[k],2);
-        Jflavor = jetFlavor[k];
-        //if(sortedJets[k].user_index()>21) cout<<sortedJets[k].user_index()<<endl;
-        JpTD = pTD(sortedJets[k]);
-        sigma2(sortedJets[k],Jsigma2);
-        tree->Fill();
-
-        //qcd_aware_clustering_flavor(sortedJets[k],efficiency);
-      }
-    }//Event loop
+    //store jet data
+    clusteredData.jetFlavor = jetFlavor;
+    QCDaware_def_jets.fill(clusteredData,sample);
+  }//Event loop
     
-  efficiency->Write();
-  jet_count->Write();
-  cout<<jetcount<<endl;
-  tree->AutoSave("Overwrite");
+  //efficiency->Write();
+  //jet_count->Write();
+  //cout<<jetcount<<endl;
+  //tree->AutoSave("Overwrite");
+  QCDaware_def_jets.save();
   outFile.Close();
   printTime((std::clock()-start));
   cout<<"Analysis stored in "<<options[2]<<endl;
