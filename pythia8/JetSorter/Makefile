@@ -46,6 +46,9 @@ QCDaware_def: $$@.cc $(PYTHIALIB) $(QCDLIB)
 extra_task: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
+physics_def: $$@.cc $(PYTHIALIB)
+	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
+
 
 # Clean.
 clean:
