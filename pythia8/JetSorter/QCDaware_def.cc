@@ -106,18 +106,14 @@ int main(int argc, char* argv[])
   int gamma;
   fastjet::PseudoJet particleTemp;
 
-  int count;
+  int index;
+  bool gluonPresence;
   /**************************************END OF SET-UP**************************************/
 
   cout<<"Using QCD-aware algorithm.\n";
   cout<<"Progress:\n";
   for (unsigned int iEvent = 0; iEvent < nEvent; ++iEvent) 
   {
-    
-    if(100*iEvent == 25*nEvent) cout<< "25%\n";
-    if(100*iEvent == 50*nEvent) cout<< "50%\n";
-    if(100*iEvent == 75*nEvent) cout<< "75%\n";
-    if(iEvent == nEvent-1) cout<< "100%.......Done.\n";
 
     Events->GetEntry(iEvent);
 
@@ -138,7 +134,7 @@ int main(int argc, char* argv[])
         qcd_aware_clustering_input.push_back( particleTemp );
       }
 
-      if (status[i] == 1) 
+      else if (status[i] == 1) 
       {   
         v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
         particleTemp = v;
@@ -146,7 +142,7 @@ int main(int argc, char* argv[])
         clustering_input.push_back( particleTemp );
       }
 
-      if(status[i] == 2)
+      else if(status[i] == 2)
       {
         leptonList.push_back(i);
         gamma = i;
@@ -162,7 +158,6 @@ int main(int argc, char* argv[])
     jets_qcd = qcd_aware_clustering.inclusive_jets( pTMin );
 
     //Adding QCD clustered jets as ghost particles to normal clustering which will follow.
-    //jet_count->Fill(jets_qcd.size());
     if(jets_qcd.size()==0) continue;
 
     for(unsigned int k = 0; k != jets_qcd.size(); ++k)
@@ -193,21 +188,30 @@ int main(int argc, char* argv[])
 
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
-      count = 0;
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
       if ( jetParts.size() == 1 ) continue;
-      if( i == 1 && (sample == 2 || sample == 3)) break;
-      if( i == 2 && sample == 1) break;
-      
-      //match with status 23 particles and assign flavor to (2) leading jets
+      if( i > 1 ) break;
+      gluonPresence = false;
+
       for(unsigned int k = 0; k != jetParts.size(); ++k)  
       {
-
-        if(jetParts[k].user_index() != 0) ++count;
         
-      }//tagging loop
-      efficiency->Fill(count);
-    }//Loop over leading jets
+        index = jetParts[k].user_index();
+        if(index != 21)
+        {
+          jetFlavor[i] = (jetFlavor[i] > index)? jetFlavor[i] : index;
+        }
+        else
+        {
+          gluonPresence = true;
+        }
+      }
+      
+      if(gluonPresence && jetFlavor[i] == 0)
+      {
+        jetFlavor[i] = 21;
+      }
+    }//tagging loop
 
 
     //store jet data
@@ -215,7 +219,7 @@ int main(int argc, char* argv[])
     QCDaware_def_jets.fill(clusteredData,sample);
   }//Event loop
     
-  efficiency->Write();
+  //efficiency->Write();
   //jet_count->Write();
   //cout<<jetcount<<endl;
   //tree->AutoSave("Overwrite");
