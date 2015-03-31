@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 
   jet_data QCDaware_def_jets; // class for storing jet data
 
-  //TH1D* efficiency = new TH1D("tagged jets", "tagged jets", 100,0,10);
+  TH1D* efficiency = new TH1D("tagged jets", "tagged jets", 100,0,10);
   //TH1D* jet_count = new TH1D("jet_count","jet_count",100,0,50);
 
   TLorentzVector v;       //for converting to cartesian coordinates
@@ -106,6 +106,7 @@ int main(int argc, char* argv[])
   int gamma;
   fastjet::PseudoJet particleTemp;
 
+  int count;
   /**************************************END OF SET-UP**************************************/
 
   cout<<"Using QCD-aware algorithm.\n";
@@ -164,13 +165,13 @@ int main(int argc, char* argv[])
     //jet_count->Fill(jets_qcd.size());
     if(jets_qcd.size()==0) continue;
 
-    // for(unsigned int k = 0; k != jets_qcd.size(); ++k)
-    // {
-    //   v.SetPtEtaPhiM(jets_qcd[k].pt(),jets_qcd[k].eta(),jets_qcd[k].phi(),jets_qcd[k].m());
-    //   v *= pow(10,-18);
-    //   particleTemp.set_user_index( jets_qcd[k].user_index() );
-    //   clustering_input.push_back( particleTemp );
-    // }
+    for(unsigned int k = 0; k != jets_qcd.size(); ++k)
+    {
+      v.SetPtEtaPhiM(jets_qcd[k].pt(),jets_qcd[k].eta(),jets_qcd[k].phi(),jets_qcd[k].m());
+      particleTemp = v*pow(10,-18);
+      particleTemp.set_user_index( jets_qcd[k].user_index() );
+      clustering_input.push_back( particleTemp );
+    }
 
     //clustering final state particles with ghosts obtained from QCD aware
     fastjet::ClusterSequence jetCluster(clustering_input, normal_jet_clustering_definition);
@@ -183,6 +184,7 @@ int main(int argc, char* argv[])
     clusteredData.leptonList = leptonList;
     clusteredData.gamma = gamma;
     clusteredData.sortedJets = sortedJets;
+    clusteredData.weight = weight;
 
     if(!is_good_event(pT,eta,phi,m,clusteredData,sample)) continue;
     
@@ -191,24 +193,20 @@ int main(int argc, char* argv[])
 
     for (unsigned int i = 0; i != sortedJets.size(); ++i) 
     {      
+      count = 0;
       vector<fastjet::PseudoJet> jetParts = sortedJets[i].constituents();
       if ( jetParts.size() == 1 ) continue;
+      if( i == 1 && (sample == 2 || sample == 3)) break;
+      if( i == 2 && sample == 1) break;
       
       //match with status 23 particles and assign flavor to (2) leading jets
-      for(unsigned int k = 0; k != jets_qcd.size(); ++k)  
+      for(unsigned int k = 0; k != jetParts.size(); ++k)  
       {
 
-        double dR = deltaR( jets_qcd[k].phi(), sortedJets[i].phi(), jets_qcd[k].eta(),sortedJets[i].eta());
-        if ( dR < R/2 ) 
-        {
-          if(jetFlavor[i]!=0) 
-          {
-            jetFlavor[i] = 0;
-            break;    
-          }
-          jetFlavor[i] = abs(jets_qcd[k].user_index());
-        }
+        if(jetParts[k].user_index() != 0) ++count;
+        
       }//tagging loop
+      efficiency->Fill(count);
     }//Loop over leading jets
 
 
@@ -217,7 +215,7 @@ int main(int argc, char* argv[])
     QCDaware_def_jets.fill(clusteredData,sample);
   }//Event loop
     
-  //efficiency->Write();
+  efficiency->Write();
   //jet_count->Write();
   //cout<<jetcount<<endl;
   //tree->AutoSave("Overwrite");

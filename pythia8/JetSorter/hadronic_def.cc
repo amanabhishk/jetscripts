@@ -162,6 +162,7 @@ int main(int argc, char* argv[])
       clusteredData.leptonList = leptonList;
       clusteredData.gamma = gamma;
       clusteredData.sortedJets = sortedJets;
+      clusteredData.weight = weight;
 
       if(!is_good_event(pT,eta,phi,m,clusteredData,sample)) continue;
 
