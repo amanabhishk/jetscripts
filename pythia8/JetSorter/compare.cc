@@ -15,11 +15,11 @@ void compare()
 	TDirectory *curdir = gDirectory;
 
 	//vector<vector<string>> files;
-	vector<string> files  = {"z_hadronic.root","g_hadronic.root","d_hadronic.root","z_physics.root","g_physics.root","d_physics.root"};
-	//vector<string> hadronic_def  = {"z1.root","g1.root","d1.root"};
+	vector<string> files  = {"z_qcd.root","g_qcd.root","d_qcd.root","z_physics.root","g_physics.root","d_physics.root"};
+	//vector<string> qcd_def  = {"z1.root","g1.root","d1.root"};
 	//file.push_back(physics_def);
-	//file.push_back(hadronic_def);
-	vector<string> algo  = {"hadronic","hadronic","hadronic","physics","physics","physics"};
+	//file.push_back(qcd_def);
+	vector<string> algo  = {"qcd","qcd","qcd","physics","physics","physics"};
     vector<int> markers = {kFullSquare,kFullCircle,kFullTriangleUp,kOpenSquare,kOpenCircle,kOpenTriangleUp};
     vector<int> color = {kRed-3,kBlue,kGreen-6};
     vector<string> variable = {"sigma2","pTD","multiplicity"};

@@ -20,7 +20,7 @@ void stack()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("test2.root","READ");
+	TFile *f = new TFile("g_qcd.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -54,6 +54,7 @@ void stack()
     	charmFrac.Fill(pT, (flavor == 4)? 1:0, weight);
     	bottomFrac.Fill(pT, (flavor == 5)? 1:0, weight);
     	unmatchedFrac.Fill(pT, (flavor == 0)? 1:0, weight);
+    	//if(weight != 0) cout<< weight << endl;
 	}
 
 	TH1D *light_quarks = lightquarkFrac.ProjectionX("light quarks","");
@@ -101,13 +102,13 @@ void stack()
 	x0 = -0.3;
 	y0 = 0.44;
 	TLegend *leg = tdrLeg(0.5,0.82,0.175,0.50);
-	TLegend *heading = tdrLeg(0.675-0.3,0.50+0.44,0.775-0.3,0.505+0.44);
+	TLegend *heading = tdrLeg(0.675-0.4,0.50+0.44,0.775-0.4,0.505+0.44);
 	TLegend *sample = tdrLeg(0.675-0.05,0.50+0.05,0.775-0.05,0.505+0.05);
 	TLegend *alphacut = tdrLeg(0.77,0.50,0.87,0.505);
 	TLegend *etacut = tdrLeg(0.61,0.50,0.71,0.505);
 
-	sample->SetHeader("#gamma+jet sample");
-	heading->SetHeader("Pythia8 Simulation (4C Tune)");
+	sample->SetHeader("dijet+sample");
+	heading->SetHeader("QCDaware definition, #sqrt{s} = 8 TeV");
 	alphacut->SetHeader("#alpha<0.3");
 	etacut->SetHeader("#left|#eta#right|< 1.3,");
 
