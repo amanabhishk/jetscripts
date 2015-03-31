@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     }//Event selector loop
   
     if (qcd_aware_clustering_input.size() == 0) continue;
-    if (clustering_input.size() == 0) continue;
+    //if (clustering_input.size() == 0) continue; //obsolete since jets_qcd.size()==0 is checked
     
     //QCD aware clustering of status 70 particles using fastjet
     vector <fastjet::PseudoJet> jets_qcd, unsortedJets, sortedJets;
@@ -179,7 +179,6 @@ int main(int argc, char* argv[])
     clusteredData.leptonList = leptonList;
     clusteredData.gamma = gamma;
     clusteredData.sortedJets = sortedJets;
-    clusteredData.weight = weight;
 
     if(!is_good_event(pT,eta,phi,m,clusteredData,sample)) continue;
     
@@ -215,6 +214,7 @@ int main(int argc, char* argv[])
 
 
     //store jet data
+    clusteredData.weight = weight;
     clusteredData.jetFlavor = jetFlavor;
     QCDaware_def_jets.fill(clusteredData,sample);
   }//Event loop
