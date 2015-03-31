@@ -3,7 +3,7 @@
 ##  Aman Abhishek                                                                   ##
 ##  Master's thesis work done under Mikko Voutilainen                               ##
 ##  University of Helsinki, Finland                                                 ##
-##  23.03.2015                                                                      ##
+##  31.03.2015                                                                      ##
 ######################################################################################
 
 USAGE:
@@ -39,26 +39,15 @@ LEVEL 1: GENERATING EVENTS AND STORING THEM IN TTREE
 ##########################################################################
 
 LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
+
 ##########################################################################
 ##                                                                      ##  
 ##  APPLYING PHYSICS DEFINITION - PARTON LEVEL MATCHING                 ##
 ##                                                                      ##
-##  (1)DIJET SAMPLE                                                     ##
-##                                                                      ##
-##  make dijet_analysis                                                 ##
-##  ./dijet_analysis.exe [input_file.root] [output_file.root]           ##
-##  #input_file.root to be taken from level 1 output                    ##
-##  #make sure that the input_file.root belongs to a dijet sample       ##
-##                                                                      ##
-##  (2)Z+JET SAMPLE                                                     ##
-##                                                                      ##
-##  make Zjet_analysis                                                  ##
-##  #everything analogous to the first case.                            ##
-##                                                                      ##
-##  (3)GAMMA+JET SAMPLE                                                 ##
-##                                                                      ##
-##  make dijet_analysis                                                 ##
-##  #everything analogous to the first case.                            ##
+##  make physics_def                                                    ##
+##  ./physics_def.exe [input_file.root] [output_file.root] [sample#]    ##
+##  #Sample numbers: 1/dijet, 2/Zjet, 3/gammajet                        ##
+##  #input_file.root to be taken from level 1 output.                   ##
 ##                                                                      ##
 ##########################################################################
 
@@ -73,16 +62,33 @@ LEVEL 2: APPLYING AN ALGORITHM FROM BELOW
 ##                                                                      ##
 ##########################################################################
 
+##########################################################################
+##                                                                      ##  
+##  APPLYING QCD-AWARE DEFINITION                                       ##
+##                                                                      ##
+##  make QCDaware_def                                                   ##
+##  ./QCDaware_def.exe [input_file.root] [output_file.root] [sample#]   ##
+##  #Sample numbers: 1/dijet, 2/Zjet, 3/gammajet                        ##
+##  #input_file.root to be taken from level 1 output.                   ##
+##                                                                      ##
+##########################################################################
+
+
 LEVEL 3: PLOTTING
 ##########################################################################
 ##                                                                      ##
+##  #file being used should be output file from level 2, hardcoded.     ##
+##                                                                      ##
 ##  root -l stack.cc+                                                   ##
 ##  #makes stack plot of jet flavor fractions                           ##
-##  #file being used should be output file from level 2, hardcoded.     ##
+##                                                                      ##
 ##                                                                      ##
 ##  root -l plot.cc+                                                    ##
 ##  #plots QGL variables                                                ##
-##  #file being used should be output file from level 2, hardcoded.     ##
+##                                                                      ##
+##                                                                      ##
+##  root -l compare.cc+                                                 ##
+##  #plots QGL variables from various samples superimposed, for 1 algo  ##
 ##                                                                      ##
 ##########################################################################
 
