@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
       for(unsigned int k = 0; k != jetParts.size(); ++k)  
       {
         
-        index = jetParts[k].user_index();
+        index = abs(jetParts[k].user_index());
         if(index != 21)
         {
           jetFlavor[i] = (jetFlavor[i] > index)? jetFlavor[i] : index;
