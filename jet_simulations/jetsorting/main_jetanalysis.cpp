@@ -39,8 +39,8 @@ int main(int argc, char* argv[]) {
    vector<string> modes;
    modes.push_back("p8"); modes.push_back("hpp");
    if (std::find(modes.begin(),modes.end(),"p8") != modes.end()) {
-      treePath = "Pythia8Tree";
-      readName = "pythia8_particles.root";
+      treePath = "HerwigTree";
+      readName = "herwig_particles.root";
    } else if (std::find(modes.begin(),modes.end(),"hpp") != modes.end()) {
       treePath = "HerwigTree";
       readName = "herwig_particles.root";
