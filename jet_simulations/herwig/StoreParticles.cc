@@ -60,39 +60,39 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int status)
    event->select(std::back_inserter(parts),SelectAll());
    eh = event->primaryCollision()->handler();
    
+   int index;
    /* Loop over all particles. */ 
    for (tPVector::const_iterator pit = parts.begin(); pit != parts.end(); ++pit) {
       int absId = abs( (*pit)->id() );
       if ( absId==2101 || absId ==2203 || absId==82 ) continue; // uu, ud, p+rem
       int pStatus = getStatusCode( *pit );
-      if ( pStatus==3 ) continue; // Beam particles and partons, not of interest
-      
+      //if ( pStatus==3 ) continue; // Beam particles and partons, not of interest
+      index = (*pit)->number();
+      if(index==6 || index==7) pStatus = 3;
       /* Normal end state particles */
-      if (pStatus == 1) {
-         int pi0Gamma = 0;
-         if ( absId==22 && gammaChecker(*pit) ) pi0Gamma = 1;
+      if (pStatus == 1 || pStatus == 3) {
          pEvent->AddPrtcl((*pit)->momentum().x(),(*pit)->momentum().y(),(*pit)->momentum().z(),
-            (*pit)->momentum().t(), (*pit)->id(), (*pit)->data().charge(), pi0Gamma ? 10 : 1);
+            (*pit)->momentum().t(), (*pit)->id(), (*pit)->data().charge(), pStatus);
       }
       
       /* Ghost particles */
-      int ghostStatus = 0;
+      // int ghostStatus = 0;
       
-      if ( (pStatus==2) && ( (absId<=6 && absId>0) || absId==21 ) ) {
-            ghostStatus = 11; /* Partons */
-      } else if (absId >= 100) { /* Status codes below this are not conventional hadrons */
-         if (hasBottom(absId) && !isExcitedHadronState(*pit,5) ) {
-            ghostStatus = 12; /* b Hadrons */
-         }
-         if (hasCharm(absId) && !isExcitedHadronState(*pit,4) ) {
-            ghostStatus = 13; /* c Hadrons */
-         }
-      } /* Add Leptons here if needed */
+      // if ( (pStatus==2) && ( (absId<=6 && absId>0) || absId==21 ) ) {
+      //       ghostStatus = 11; /* Partons */
+      // } else if (absId >= 100) { /* Status codes below this are not conventional hadrons */
+      //    if (hasBottom(absId) && !isExcitedHadronState(*pit,5) ) {
+      //       ghostStatus = 12; /* b Hadrons */
+      //    }
+      //    if (hasCharm(absId) && !isExcitedHadronState(*pit,4) ) {
+      //       ghostStatus = 13; /* c Hadrons */
+      //    }
+      // } /* Add Leptons here if needed */
       
-      if (ghostStatus) {
-         pEvent->AddPrtcl((*pit)->momentum().x(),(*pit)->momentum().y(),(*pit)->momentum().z(),
-            (*pit)->momentum().t(), (*pit)->id(), (*pit)->data().charge(),ghostStatus);
-      }
+      // if (ghostStatus) {
+      //    pEvent->AddPrtcl((*pit)->momentum().x(),(*pit)->momentum().y(),(*pit)->momentum().z(),
+      //       (*pit)->momentum().t(), (*pit)->id(), (*pit)->data().charge(),ghostStatus);
+      // }
    }
    // TODO ghost particles/partons
    
