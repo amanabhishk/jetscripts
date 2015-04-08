@@ -61,6 +61,7 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int state)
    eh = event->primaryCollision()->handler();
    
    int index, count = -1; 
+   int check = 0;
    
    /* Loop over all particles. */ 
    for (tPVector::const_iterator pit = parts.begin(); pit != parts.end(); ++pit) {
@@ -69,7 +70,11 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int state)
       int pStatus = getStatusCode( *pit );
       //if ( pStatus==3 ) continue; // Beam particles and partons, not of interest
       index = (*pit)->number();
-      if(index==6 || index==7) pStatus = 3;
+      if(index==6 || index==7) 
+      {
+        pStatus = 3;
+        ++check;
+      }
       /* Normal end state particles */
       if (pStatus == 1 || pStatus == 3) 
       {
@@ -106,7 +111,7 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int state)
    }
    // TODO ghost particles/partons
    
-   herwigTree->Fill();
+   if(check==2)herwigTree->Fill();
    //pEvent->Clear();
 }
 
@@ -122,10 +127,8 @@ void StoreParticles::dofinish()
 
 void StoreParticles::doinitrun() 
 {
-  cout<<"Check3.\n";
   AnalysisHandler::doinitrun();
 
-  cout<<"Check2.\n";
   // create ROOT File
   herwigFile = new TFile ("herwig_particles.root","RECREATE");
   herwigFile->SetCompressionLevel(1); // by default file is compressed 
@@ -136,14 +139,13 @@ void StoreParticles::doinitrun()
   }
   
   // create ROOT Tree
-  herwigTree = new TTree ("HerwigTree","Tree filled with herwig data.");
+  herwigTree = new TTree ("Events","TTree of herwig events");
   if (!herwigTree) {
     cout << "StoreParticles: root tree has not been created..." << endl;
     return;
   }
   //herwigTree->SetAutoSave(1000000000); /* autosave when 1 Gbyte written */
   //herwigTree->SetCacheSize(10000000);  /* set a 10 MBytes cache (useless when writing local files) */
-  cout<<"Check1.\n";
   //TTree::SetBranchStyle(1); /* new style by default */
   //pEvent = new PrtclEvent;
   herwigTree->Branch("n", &N, "n/s");
