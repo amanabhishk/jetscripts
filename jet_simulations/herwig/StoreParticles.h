@@ -197,6 +197,11 @@ private:
    TTree * herwigTree;
    TFile * herwigFile;
 
+   UShort_t N;               //exact number of particles stored for each event 
+   Int_t id[3000];
+   Float_t weight, pT[3000], eta[3000], phi[3000], m[3000];
+   UChar_t status[3000];
+   
    PrtclEvent *pEvent;
 };
 

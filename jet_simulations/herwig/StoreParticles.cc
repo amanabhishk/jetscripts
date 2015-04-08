@@ -17,8 +17,8 @@ using namespace ThePEG;
 #endif
 
 #include <iostream>
-#include "../generic/help_functions.h"
-#include "herwig_functions.h"
+//#include "../generic/help_functions.h"
+//#include "herwig_functions.h"
 
 using std::cout;
 using std::endl;
@@ -48,10 +48,10 @@ int StoreParticles::getStatusCode(tPPtr part) const
    return status;
 }
   
-void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int status) 
+void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int state) 
 {
    /* Rotate to CMS, extract final state particles and call analyze(particles). */
-   AnalysisHandler::analyze(event, ieve, loop, status);
+   AnalysisHandler::analyze(event, ieve, loop, state);
    if ( loop > 0 || !event ) return;
    // if ( loop > 0 || status != 0 || !event ) return;
 
@@ -60,7 +60,8 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int status)
    event->select(std::back_inserter(parts),SelectAll());
    eh = event->primaryCollision()->handler();
    
-   int index;
+   int index, count = -1; 
+   
    /* Loop over all particles. */ 
    for (tPVector::const_iterator pit = parts.begin(); pit != parts.end(); ++pit) {
       int absId = abs( (*pit)->id() );
@@ -70,9 +71,18 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int status)
       index = (*pit)->number();
       if(index==6 || index==7) pStatus = 3;
       /* Normal end state particles */
-      if (pStatus == 1 || pStatus == 3) {
-         pEvent->AddPrtcl((*pit)->momentum().x(),(*pit)->momentum().y(),(*pit)->momentum().z(),
-            (*pit)->momentum().t(), (*pit)->id(), (*pit)->data().charge(), pStatus);
+      if (pStatus == 1 || pStatus == 3) 
+      {
+         //pEvent->AddPrtcl((*pit)->momentum().x(),(*pit)->momentum().y(),(*pit)->momentum().z(),
+         //   (*pit)->momentum().t(), (*pit)->id(), (*pit)->data().charge(), pStatus);
+        count++;
+        id[count] = (*pit)->id();
+        pT[count] = (*pit)->momentum().t();
+        eta[count] = (*pit)->momentum().x();
+        phi[count] = (*pit)->momentum().y();
+        m[count] = (*pit)->momentum().z();
+        status[count] = pStatus;
+        N = UShort_t(count+1);
       }
       
       /* Ghost particles */
@@ -97,7 +107,7 @@ void StoreParticles::analyze(tEventPtr event, long ieve, int loop, int status)
    // TODO ghost particles/partons
    
    herwigTree->Fill();
-   pEvent->Clear();
+   //pEvent->Clear();
 }
 
 void StoreParticles::dofinish() 
@@ -112,8 +122,10 @@ void StoreParticles::dofinish()
 
 void StoreParticles::doinitrun() 
 {
+  cout<<"Check3.\n";
   AnalysisHandler::doinitrun();
 
+  cout<<"Check2.\n";
   // create ROOT File
   herwigFile = new TFile ("herwig_particles.root","RECREATE");
   herwigFile->SetCompressionLevel(1); // by default file is compressed 
@@ -129,14 +141,22 @@ void StoreParticles::doinitrun()
     cout << "StoreParticles: root tree has not been created..." << endl;
     return;
   }
-  herwigTree->SetAutoSave(1000000000); /* autosave when 1 Gbyte written */
-  herwigTree->SetCacheSize(10000000);  /* set a 10 MBytes cache (useless when writing local files) */
-
-  TTree::SetBranchStyle(1); /* new style by default */
-  pEvent = new PrtclEvent;
-  TBranch *branch = herwigTree->Branch("event", &pEvent, 32000,4);
-  branch->SetAutoDelete(kFALSE);
-  herwigTree->BranchRef();
+  //herwigTree->SetAutoSave(1000000000); /* autosave when 1 Gbyte written */
+  //herwigTree->SetCacheSize(10000000);  /* set a 10 MBytes cache (useless when writing local files) */
+  cout<<"Check1.\n";
+  //TTree::SetBranchStyle(1); /* new style by default */
+  //pEvent = new PrtclEvent;
+  herwigTree->Branch("n", &N, "n/s");
+  herwigTree->Branch("weight", &weight, "weight/F");
+  herwigTree->Branch("id", id, "id[n]/I");
+  herwigTree->Branch("status", status, "status[n]/b");
+  herwigTree->Branch("pT", pT, "pT[n]/F");
+  herwigTree->Branch("eta", eta, "eta[n]/F");
+  herwigTree->Branch("phi", phi, "phi[n]/F");
+  herwigTree->Branch("m", m, "m[n]/F");
+  //TBranch *branch = herwigTree->Branch("event", &pEvent, 32000,4);
+  //branch->SetAutoDelete(kFALSE);
+  //herwigTree->BranchRef();
 }
 
 /* *** Attention *** The following static variable is needed for the type
