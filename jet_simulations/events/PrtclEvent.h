@@ -28,24 +28,20 @@ public:
    PrtclData() { Class()->IgnoreTObjectStreamer(); }
    virtual ~PrtclData() { }
 
-   void SetPxPyPzE(double,double,double,double);
+   void SetFourVector(double,double,double,double);
    void SetParams(int,double,int);
    
-   Double_t P() const { return fP4.P(); }
-   Double_t Pt() const { return fP4.Pt(); }
-   Double_t Eta() const { return fP4.Eta(); }
-   Double_t Phi() const { return fP4.Phi(); }
-   Double_t Mass() const { return fP4.M(); }
 
 private:
    /* Use a pure ROOT LorentzVector so that for instance Pt can be found out
     * even without the sources of this event class. This is a slightly better 
     * format than TLorentzVector and is in use for instance in the KKousouris 
     * scripts (indirectly, through CMSSW). */ 
-   ROOT::Math::LorentzVector< ROOT::Math::PxPyPzE4D<double> > fP4;
+   //ROOT::Math::LorentzVector< ROOT::Math::PxPyPzE4D<double> > fP4;
   
    int fPDGCode;
    int fChargeTimes3;
+   float pT,eta,phi,m;
    
    /* Indicates why the particle was saved and/or other properties it holds.
     * 1: generic particle (stable)

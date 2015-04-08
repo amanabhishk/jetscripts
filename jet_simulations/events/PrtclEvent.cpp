@@ -10,9 +10,12 @@ using std::cout;
 using std::endl;
 
 
-void PrtclData::SetPxPyPzE(double px, double py, double pz, double e)
+void PrtclData::SetFourVector(double a, double b, double c, double d)
 {
-   fP4.SetPxPyPzE(px,py,pz,e);
+   pT = a;
+   eta = b;
+   phi = c;
+   m = d;
 }
 
 
@@ -34,14 +37,14 @@ PrtclEvent::PrtclEvent(size_t tmpStore)
 }
 
 
-void PrtclEvent::AddPrtcl(double px, double py, double pz, double e, int id, 
+void PrtclEvent::AddPrtcl(double pT, double eta, double phi, double m, int id, 
    double charge, int status)
 {
    int ObjectNumber = TProcessID::GetObjectCount();
   
    PrtclData *part;
    part = InitPrtcl();
-   part->SetPxPyPzE(px,py,pz,e);
+   part->SetFourVector(pT,eta,phi,m);
    part->SetParams(id,charge,status);
    
    TProcessID::SetObjectCount(ObjectNumber);
