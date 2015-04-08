@@ -101,7 +101,7 @@ herwig_read: libStoreParticles.so
 	cd herwig && Herwig++ read $(HFILE).in
 
 herwig_run: libStoreParticles.so
-	cd herwig && Herwig++ run -N $(NUM) $(HFILE).run && mv *.root ../.
+	cd herwig && Herwig++ run -d1 -N $(NUM) $(HFILE).run && mv *.root ../.
 
 libStoreParticles.so : StoreParticles.cc libPrtclEvent.so
 	cd herwig && $(CXX) -shared -fPIC StoreParticles.cc \
