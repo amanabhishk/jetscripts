@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
   TLorentzVector v;       //for converting to cartesian coordinates
   vector<int> leptonList;
   int gamma;
+  double hardest_pT = 0;
 
   /**************************************END OF SET-UP**************************************/
 
@@ -121,15 +122,15 @@ int main(int argc, char* argv[])
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           v *= pow(10,-18);
           fastjet::PseudoJet particleTemp = v;
-          particleTemp.set_user_index(id[i]*100);
+          particleTemp.set_user_index(abs(id[i])*100);
           fjInputs.push_back( particleTemp );
         }
-        else if (status[i] == 4 || status[i] == 5 || status[i] == 6) 
+        else if (status[i] == 4 || status[i] == 5 /*|| status[i] == 6*/) 
         {   
           v.SetPtEtaPhiM(pT[i],eta[i],phi[i],m[i]);
           v *= pow(10,-18);
           fastjet::PseudoJet particleTemp = v;
-          particleTemp.set_user_index( (status[i]==6)? 3:status[i] );
+          particleTemp.set_user_index( status[i]/*(status[i]==6)? 3:status[i]*/ );
           fjInputs.push_back( particleTemp );
         }
         else if ( status[i] == 1 ) 
@@ -180,6 +181,7 @@ int main(int argc, char* argv[])
         
         flavor_from_parton = 0;
         flavor_from_hadron = 0;
+        hardest_pT = 0;
         
         for(unsigned int p = 0; p != jetParts.size(); ++p)
         {
@@ -189,24 +191,25 @@ int main(int argc, char* argv[])
             if(flavor_from_hadron < index) flavor_from_hadron = index;  
           }
           
-          else if(index == 400 || index == 500)
+          if(hardest_pT < pow(10,18)*jetParts[p].pt() && index > 99)
           {
-            if(flavor_from_parton < index) flavor_from_parton = index/100;  
+            flavor_from_parton = index/100;  
+            hardest_pT = pow(10,18)*jetParts[p].pt();
           }
         }
 
-        if(flavor_from_parton == 0)
-        {
-          for(unsigned int p = 0; p != jetParts.size(); ++p)
-          {
-            index = jetParts[p].user_index();
-            if(index > 99) 
-            {
-              flavor_from_parton = index/100;
-              break;
-            }
-          }
-        }
+        // if(flavor_from_parton == 0)
+        // {
+        //   for(unsigned int p = 0; p != jetParts.size(); ++p)
+        //   {
+        //     index = jetParts[p].user_index();
+        //     if(index > 99) 
+        //     {
+        //       flavor_from_parton = index/100;
+        //       break;
+        //     }
+        //   }
+        // }
 
         jetFlavor[i]=(flavor_from_hadron == 0)? flavor_from_parton:flavor_from_hadron;
       }//Loop over leading jets
