@@ -125,22 +125,6 @@ bool isMeson(const int& c)
   else return false;
 }
 
-double pTD(const fastjet::PseudoJet& jet){
-  
-  double num = 0, den = 0;
-  vector<fastjet::PseudoJet> jetParts = jet.constituents();
-
-  for(unsigned int q = 0; q != jetParts.size(); ++q) 
-  {
-    num += pow(jetParts[q].pt(),2);
-    den += jetParts[q].pt();
-  }
-  //for(unsigned int q = 0; q != jetParts.size(); ++q) 
-
-  num = pow(num, 0.5);
-  return num/den;
-}
-
 void implicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::PseudoJet>& jet)
 {
   int id;
@@ -169,30 +153,44 @@ void explicit_cuts(const vector<fastjet::PseudoJet>& jet_ref, vector<fastjet::Ps
   }  
 }
 
-unsigned int multiplicity(const fastjet::PseudoJet& jet, const unsigned char& cut)
+unsigned int multiplicity(const fastjet::PseudoJet& jet)
 {
-  if(cut == 0) return jet.constituents().size();
-  else if(cut == 1)
-  {
-    vector <fastjet::PseudoJet> jetParts(0);
-    explicit_cuts(jet.constituents(),jetParts);
-    return jetParts.size(); 
-  }
-  else if(cut == 2)
-  {
-    vector <fastjet::PseudoJet> jetParts(0);
-    vector <fastjet::PseudoJet> jetParts2(0);
-    explicit_cuts(jet.constituents(), jetParts);
-    implicit_cuts(jetParts,jetParts2);
-    return jetParts2.size();
-  }
-  
+
+  vector <fastjet::PseudoJet> jetParts(0);
+  vector <fastjet::PseudoJet> jetParts2(0);
+  explicit_cuts(jet.constituents(), jetParts);
+  implicit_cuts(jetParts,jetParts2);
+  return jetParts2.size();
+
 }
 
-void sigma2(const fastjet::PseudoJet& jet, float* output){
+double pTD(const fastjet::PseudoJet& jet){
+  
+  double num = 0, den = 0;
+  vector <fastjet::PseudoJet> jetParts_temp(0);
+  vector <fastjet::PseudoJet> jetParts(0);
+  explicit_cuts(jet.constituents(), jetParts_temp);
+  implicit_cuts(jetParts_temp,jetParts);
 
-  vector <fastjet::PseudoJet> jetParts = jet.constituents(); 
-  double M11 = 0, M22 = 0, M12 = 0, M11_cut = 0, M22_cut = 0, M12_cut = 0;
+  for(unsigned int q = 0; q != jetParts.size(); ++q) 
+  {
+    num += pow(jetParts[q].pt(),2);
+    den += jetParts[q].pt();
+  }
+  //for(unsigned int q = 0; q != jetParts.size(); ++q) 
+
+  num = pow(num, 0.5);
+  return num/den;
+}
+
+double sigma2(const fastjet::PseudoJet& jet){
+
+  vector <fastjet::PseudoJet> jetParts_temp(0);
+  vector <fastjet::PseudoJet> jetParts(0);
+  explicit_cuts(jet.constituents(), jetParts_temp);
+  implicit_cuts(jetParts_temp,jetParts);
+
+  double M11 = 0, M22 = 0, M12 = 0;
   double phi(0), eta(0), pT2(0);
   
   for(unsigned int q = 0; q != jetParts.size(); ++q) 
@@ -205,19 +203,8 @@ void sigma2(const fastjet::PseudoJet& jet, float* output){
   eta = eta/pT2;
   phi = phi/pT2;
 
-  int id;
-
   for(unsigned int q = 0; q != jetParts.size(); ++q) 
   {
-    id = jetParts[q].user_index();
-    if((jetParts[q].pt()>1 && !isCharged(id) && isHadron(id)) || !isHadron(id) || (isHadron(id) && isCharged(id)))
-    {
-      M11_cut += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
-      M22_cut += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);
-      M12_cut += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),eta)*deltaPhi(jetParts[q].phi(),phi);          
-    }
-    //else cout<<id<<endl;
-
     M11 += pow(jetParts[q].pt()*deltaEta(jetParts[q].eta(),eta),2);
     M22 += pow(jetParts[q].pt()*deltaPhi(jetParts[q].phi(),phi),2);
     M12 += -pow(jetParts[q].pt(),2)*deltaEta(jetParts[q].eta(),eta)*deltaPhi(jetParts[q].phi(),phi);    
@@ -228,24 +215,12 @@ void sigma2(const fastjet::PseudoJet& jet, float* output){
     M12, M22
   };
 
-  double e_cut[4] = {
-    M11_cut, M12_cut,
-    M12_cut, M22_cut
-  };
-
   TMatrixDSym m(2, e);
   TMatrixDSymEigen me(m);
 
-  TMatrixDSym m_cut(2, e_cut);
-  TMatrixDSymEigen me_cut(m_cut);
-
-
   TVectorD eigenval = me.GetEigenValues();
-  TVectorD eigenval_cut = me_cut.GetEigenValues();
 
-  output[0] = pow(eigenval[1]/pT2,0.5);
-  output[1] = pow(eigenval_cut[1]/pT2,0.5);
-  //return pow(eigenval[1]/pT2,0.5);
+  return pow(eigenval[1]/pT2,0.5);
 }
 
 void fillTree(const Particle& p, const int& count, Int_t* id, Float_t* pT, Float_t* eta, Float_t* phi, Float_t* m){
@@ -491,11 +466,13 @@ class jet_data
         
         Jw = data.weight;
         JpT = data.sortedJets[k].pt();
-        Jmul[0] = multiplicity(data.sortedJets[k],0);
-        Jmul[1] = multiplicity(data.sortedJets[k],2);
+
         Jflavor = data.jetFlavor[k];
+
+        Jmul = multiplicity(data.sortedJets[k]);
         JpTD = pTD(data.sortedJets[k]);
-        sigma2(data.sortedJets[k],Jsigma2);
+        Jsigma2 = sigma2(data.sortedJets[k]);
+        
         tree->Fill();
       }
     }
@@ -505,8 +482,8 @@ class jet_data
       tree->Branch("jet_weight", &Jw , "jet_weight/F" );
       tree->Branch("jet_pT", &JpT , "jet_pT/F" );
       tree->Branch("jet_pTD", &JpTD , "jet_pTD/F" );
-      tree->Branch("jet_sigma2", Jsigma2 , "jet_sigma2[2]/F" );
-      tree->Branch("jet_multiplicity", Jmul , "jet_multiplicity[2]/i" );
+      tree->Branch("jet_sigma2", &Jsigma2 , "jet_sigma2/F" );
+      tree->Branch("jet_multiplicity", &Jmul , "jet_multiplicity/i" );
       tree->Branch("jet_flavor", &Jflavor , "jet_flavor/b" ); 
     }
 
@@ -516,8 +493,8 @@ class jet_data
     }
   
   protected:
-    float Jw, JpT, JpTD, Jsigma2[2];
-    unsigned int Jmul[2];
+    float Jw, JpT, JpTD, Jsigma2;
+    unsigned int Jmul;
     unsigned char Jflavor;
     TTree* tree = new TTree("tree","tree");
 

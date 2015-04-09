@@ -136,7 +136,8 @@ void stack()
 	alphacut->Draw();
 	etacut->Draw();
 	
-	gPad->SetLogx();
 	
+	gPad->SetLogx();
+	c1->SaveAs("test.jpg");
 }
 

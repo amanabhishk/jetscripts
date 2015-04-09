@@ -15,7 +15,7 @@ void compare()
 	TDirectory *curdir = gDirectory;
 
 	//vector<vector<string>> files;
-	vector<string> files  = {"z_qcd.root","g_qcd.root","d_qcd.root","z_physics.root","g_physics.root","d_physics.root"};
+	vector<string> files  = {"had_z.root","had_g.root","had_d.root","phy_z.root","phy_g.root","phy_d.root"};
 	//vector<string> qcd_def  = {"z1.root","g1.root","d1.root"};
 	//file.push_back(physics_def);
 	//file.push_back(qcd_def);
@@ -44,16 +44,16 @@ void compare()
 		assert(tree && !tree->IsZombie());
 		unsigned int N = (unsigned int)tree->GetEntries(); 
 
-		float pT, weight, pTD, sigma2[2];
-		unsigned int constituents[2];
+		float pT, weight, pTD, sigma2;
+		unsigned int constituents;
 		unsigned char flavor;
 		
 		tree->SetBranchAddress("jet_pT",&pT);
-		tree->SetBranchAddress("jet_sigma2",sigma2);
+		tree->SetBranchAddress("jet_sigma2",&sigma2);
 		tree->SetBranchAddress("jet_pTD",&pTD);
 		tree->SetBranchAddress("jet_flavor",&flavor);
 		tree->SetBranchAddress("jet_weight",&weight);
-		tree->SetBranchAddress("jet_multiplicity",constituents);
+		tree->SetBranchAddress("jet_multiplicity",&constituents);
 
 		
 		vector<vector<TH1D*>> one_sample;
@@ -77,21 +77,21 @@ void compare()
 			if(pT>100 || pT<80) continue;
 			if(flavor == 21)
 			{
-				plots[q][0][0]->Fill(sigma2[1],weight);
+				plots[q][0][0]->Fill(sigma2,weight);
 				plots[q][0][1]->Fill(pTD,weight);
-				plots[q][0][2]->Fill(constituents[1],weight);
+				plots[q][0][2]->Fill(constituents,weight);
 			}
 			else if(flavor == 0) 
 			{
-				plots[q][2][0]->Fill(sigma2[1],weight);
+				plots[q][2][0]->Fill(sigma2,weight);
 				plots[q][2][1]->Fill(pTD,weight);
-				plots[q][2][2]->Fill(constituents[1],weight);
+				plots[q][2][2]->Fill(constituents,weight);
 			}
 			else 
 			{
-				plots[q][1][0]->Fill(sigma2[1],weight);
+				plots[q][1][0]->Fill(sigma2,weight);
 				plots[q][1][1]->Fill(pTD,weight);
-				plots[q][1][2]->Fill(constituents[1],weight);
+				plots[q][1][2]->Fill(constituents,weight);
 			}
 		}
 		
@@ -161,6 +161,8 @@ void compare()
 				gel->AddEntry(plots[t][1][l],"dijet","P");
 				gel->Draw();				
 			}
+
+			//c[t]->SaveAs("test.jpg");
 	
 		}
 	}
