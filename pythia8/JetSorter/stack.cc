@@ -20,7 +20,7 @@ void stack()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("phy_z.root","READ");
+	TFile *f = new TFile("had_d.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -101,7 +101,8 @@ void stack()
 	double x0, y0;
 	x0 = -0.3;
 	y0 = 0.44;
-	TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1);
+	//TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 	//physics def
+	TLegend *leg = tdrLeg(0.5,0.82+0.07,0.175,0.50+0.07);	//hadronic def
 	TLegend *heading = tdrLeg(0.675-0.4,0.50+0.44,0.775-0.4,0.505+0.44);
 	TLegend *sample = tdrLeg(0.675-0.05,0.50,0.775-0.05,0.505);
 	TLegend *alphacut = tdrLeg(0.77,0.50-0.05,0.87,0.505-0.05);
