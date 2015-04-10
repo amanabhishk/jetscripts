@@ -19,22 +19,22 @@ void plot()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("test.root","READ");
+	TFile *f = new TFile("phy_d.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
 	cout<<N<<" jets in total."<<endl;
 	
-	float pT, weight, pTD, sigma2[2];
-	unsigned int constituents[2];
+	float pT, weight, pTD, sigma2;
+	unsigned int constituents;
 	unsigned char flavor;
 	
 	tree->SetBranchAddress("jet_pT",&pT);
-	tree->SetBranchAddress("jet_sigma2",sigma2);
+	tree->SetBranchAddress("jet_sigma2",&sigma2);
 	tree->SetBranchAddress("jet_pTD",&pTD);
 	tree->SetBranchAddress("jet_flavor",&flavor);
 	tree->SetBranchAddress("jet_weight",&weight);
-	tree->SetBranchAddress("jet_multiplicity",constituents);
+	tree->SetBranchAddress("jet_multiplicity",&constituents);
 	
 	TProfile gluonFrac("g","g",ptBins,ptRange);
   	TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
@@ -51,15 +51,6 @@ void plot()
 	multiplicity_u->Sumw2();
 	multiplicity_g->SetLineColor(kRed);
 	multiplicity_u->SetLineColor(kGreen);
-	
-	TH1D* multiplicity_g_cut = new TH1D("multiplicity_g_cut","multiplicity_g_cut",60,0,60);
-	TH1D* multiplicity_q_cut = new TH1D("multiplicity_q_cut","multiplicity_q_cut",60,0,60);
-	TH1D* multiplicity_u_cut = new TH1D("multiplicity_u_cut","multiplicity_u_cut",60,0,60);
-	multiplicity_q_cut->Sumw2();
-	multiplicity_g_cut->Sumw2();
-	multiplicity_u_cut->Sumw2();
-	multiplicity_g_cut->SetLineColor(kRed);
-	multiplicity_u_cut->SetLineColor(kGreen);
 
 
 	TH1D* pTD_g = new TH1D("pTD_g","pTD_g",100,0,1);
@@ -80,15 +71,6 @@ void plot()
 	sigma2_g->SetLineColor(kRed);
 	sigma2_u->SetLineColor(kGreen);
 
-	TH1D* sigma2_g_cut = new TH1D("sigma2_g_cut","sigma2_g_cut",100,0,0.2);
-	TH1D* sigma2_q_cut = new TH1D("sigma2_q_cut","sigma2_q_cut",100,0,0.2);
-	TH1D* sigma2_u_cut = new TH1D("sigma2_u_cut","sigma2_u_cut",100,0,0.2);
-	sigma2_u_cut->Sumw2();
-	sigma2_g_cut->Sumw2();
-	sigma2_q_cut->Sumw2();
-	sigma2_g_cut->SetLineColor(kRed);
-	sigma2_u_cut->SetLineColor(kGreen);
-
 
 	for(unsigned int x=0; x != N; ++x)
 	{
@@ -104,27 +86,21 @@ void plot()
 		if(pT>100 || pT<80) continue;
 		if(flavor == 21) 
 		{
-			multiplicity_g->Fill(constituents[0],weight);
-			multiplicity_g_cut->Fill(constituents[1],weight);
+			multiplicity_g->Fill(constituents,weight);
 			pTD_g->Fill(pTD,weight);
-			sigma2_g->Fill(sigma2[0],weight);
-			sigma2_g_cut->Fill(sigma2[1],weight);
+			sigma2_g->Fill(sigma2,weight);
 		}
 		else if(flavor == 0) 
 		{
-			multiplicity_u->Fill(constituents[0],weight);
-			multiplicity_u_cut->Fill(constituents[1],weight);
+			multiplicity_u->Fill(constituents,weight);
 			pTD_u->Fill(pTD,weight);
-			sigma2_u->Fill(sigma2[0],weight);
-			sigma2_u_cut->Fill(sigma2[1],weight);	
+			sigma2_u->Fill(sigma2,weight);
 		}
 		else 
 		{
-			multiplicity_q->Fill(constituents[0],weight);
-			multiplicity_q_cut->Fill(constituents[1],weight);
+			multiplicity_q->Fill(constituents,weight);
 			pTD_q->Fill(pTD,weight);
-			sigma2_q->Fill(sigma2[0],weight);	
-			sigma2_q_cut->Fill(sigma2[1],weight);	
+			sigma2_q->Fill(sigma2,weight);	
 		}
 	}
 
@@ -248,45 +224,6 @@ void plot()
 	um->Scale(1/um->Integral());
 	qm->Scale(1/qm->Integral());	
 	
-	/*****************Constituents with CUT*****************/
-
-	//STACKED
-	setTDRStyle();
-	TH1F *um_cut = (TH1F*)multiplicity_u_cut->Clone("um_cut");
-	TH1F *gm_cut = (TH1F*)multiplicity_g_cut->Clone("gm_cut");
-	TH1F *qm_cut = (TH1F*)multiplicity_q_cut->Clone("qm_cut");
-
-	TH1D *h10 = new TH1D("h10",";Number of constituents(with cut);Events",60,0,60);
-	h10->SetMinimum(0);
-	h10->SetMaximum(0.05);
-	h10->GetYaxis()->SetNoExponent();
-	h10->GetXaxis()->SetNoExponent();
-	h10->GetXaxis()->SetRangeUser(0,60);
-	multiplicity_g_cut->Add(multiplicity_u_cut);
-	multiplicity_q_cut->Add(multiplicity_g_cut);
-
-	TCanvas *c10 = tdrCanvas("c10",h10,0,33);
-	tdrDraw(multiplicity_g_cut,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(multiplicity_u_cut,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
-	tdrDraw(multiplicity_q_cut,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
-
-
-	//SEPARATE
-	setTDRStyle();
-	TH1D *h11 = new TH1D("h11",";Number of constituents(with cut);Events",60,0,60);
-	h11->SetMinimum(0);
-	h11->SetMaximum(0.08);
-	h11->GetYaxis()->SetNoExponent();
-	h11->GetXaxis()->SetNoExponent();
-	h11->GetXaxis()->SetRangeUser(0,60);
-
-	TCanvas *c11 = tdrCanvas("c11",h11,0,33);
-	tdrDraw(gm_cut,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(um_cut,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
-	tdrDraw(qm_cut,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
-	gm_cut->Scale(1/gm_cut->Integral());
-	um_cut->Scale(1/um_cut->Integral());
-	qm_cut->Scale(1/qm_cut->Integral());	
 		
 	/****************pTD****************/
 
@@ -366,44 +303,6 @@ void plot()
 	us->Scale(1/us->Integral());
 	gs->Scale(1/gs->Integral());
 
-	/****************sigma2 with CUT****************/
-	
-	//STACKED
-	setTDRStyle();
-	TH1F *us_cut = (TH1F*)sigma2_u_cut->Clone("us_cut");
-	TH1F *gs_cut = (TH1F*)sigma2_g_cut->Clone("gs_cut");
-	TH1F *qs_cut = (TH1F*)sigma2_q_cut->Clone("qs_cut");
 
-	TH1D *h8 = new TH1D("h8",";#sigma_{2}(with cut);Events",100,0,0.2);
-	h8->SetMinimum(0);
-	h8->SetMaximum(0.06);
-	h8->GetYaxis()->SetNoExponent();
-	h8->GetXaxis()->SetNoExponent();
-	h8->GetXaxis()->SetRangeUser(0,0.2);
-	sigma2_g_cut->Add(sigma2_u_cut);
-	sigma2_q_cut->Add(sigma2_g_cut);
-
-	TCanvas *c8 = tdrCanvas("c8",h8,0,33);
-	tdrDraw(sigma2_q_cut,"HIST",kDot,kBlue,kSolid,-1,3003,kBlue);
-	tdrDraw(sigma2_g_cut,"HIST",kDot,kRed-3,kSolid,-1,3004,kRed-3);
-	tdrDraw(sigma2_u_cut,"HIST",kDot,kGreen-1,kSolid,-1,3005,kGreen-1);
-	
-
-	//SEPARATE
-	setTDRStyle();
-	TH1D *h9 = new TH1D("h9",";#sigma_{2}(with cut);Events",100,0,0.2);
-	h9->SetMinimum(0);
-	h9->SetMaximum(0.06);
-	h9->GetYaxis()->SetNoExponent();
-	h9->GetXaxis()->SetNoExponent();
-	h9->GetXaxis()->SetRangeUser(0,0.2);
-
-	TCanvas *c9 = tdrCanvas("c9",h9,0,33);
-	tdrDraw(gs_cut,"HIST",kDot,kRed-3,kSolid,-1,3003,kRed-3);
-	tdrDraw(us_cut,"HIST",kDot,kGreen-1,kSolid,-1,3004,kGreen-1);
-	tdrDraw(qs_cut,"HIST",kDot,kBlue,kSolid,-1,3005,kBlue);
-	qs_cut->Scale(1/qs_cut->Integral());
-	us_cut->Scale(1/us_cut->Integral());
-	gs_cut->Scale(1/gs_cut->Integral());
 }
 
