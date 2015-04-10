@@ -20,22 +20,18 @@ void stack()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("qcd_z.root","READ");
+	TFile *f = new TFile("phy_d.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
 	cout<<N<<" jets in total."<<endl;
 	
-	float pT, weight, pTD, sigma2[2];
-	unsigned int constituents[2];
+	float pT, weight;
 	unsigned char flavor;
 	
 	tree->SetBranchAddress("jet_pT",&pT);
-	tree->SetBranchAddress("jet_sigma2",sigma2);
-	tree->SetBranchAddress("jet_pTD",&pTD);
 	tree->SetBranchAddress("jet_flavor",&flavor);
 	tree->SetBranchAddress("jet_weight",&weight);
-	tree->SetBranchAddress("jet_multiplicity",constituents);
 	
 	TProfile gluonFrac("g","g",ptBins,ptRange);
   	TProfile lightquarkFrac("lq","lq",ptBins,ptRange);
@@ -137,6 +133,6 @@ void stack()
 	
 	
 	gPad->SetLogx();       
-	c1->SaveAs("output.pdf");
+	//c1->SaveAs("output.pdf");
 }
 
