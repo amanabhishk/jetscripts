@@ -108,6 +108,7 @@ int main(int argc, char* argv[])
 
   int index;
   bool gluonPresence;
+  double hardest_pT = 0;
   /**************************************END OF SET-UP**************************************/
 
   cout<<"Using QCD-aware algorithm.\n";
@@ -191,24 +192,17 @@ int main(int argc, char* argv[])
       if ( jetParts.size() == 1 ) continue;
       if( i > 1 ) break;
       gluonPresence = false;
+      hardest_pT = 0;
 
       for(unsigned int k = 0; k != jetParts.size(); ++k)  
       {
         
         index = abs(jetParts[k].user_index());
-        if(index != 21)
+        if(index != 0 && hardest_pT < pow(10,18)*jetParts[k].pt())
         {
-          jetFlavor[i] = (jetFlavor[i] > index)? jetFlavor[i] : index;
+          jetFlavor[i] = index;
+          hardest_pT = pow(10,18)*jetParts[k].pt();
         }
-        else
-        {
-          gluonPresence = true;
-        }
-      }
-      
-      if(gluonPresence && jetFlavor[i] == 0)
-      {
-        jetFlavor[i] = 21;
       }
     }//tagging loop
 
