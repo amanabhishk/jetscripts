@@ -20,7 +20,7 @@ void stack()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("phy_d.root","READ");
+	TFile *f = new TFile("had_z.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -113,7 +113,7 @@ void stack()
 	// TLegend *etacut = tdrLeg(0.61,0.50-0.05,0.71,0.505-0.05);			//aware
 
 	sample->SetHeader("Z+jet sample");
-	heading->SetHeader("QCDaware Definition, #sqrt{s} = 8 TeV");
+	heading->SetHeader("Hadronic Definition, #sqrt{s} = 8 TeV");
 	alphacut->SetHeader("#alpha<0.3");
 	etacut->SetHeader("#left|#eta#right|< 1.3,");
 

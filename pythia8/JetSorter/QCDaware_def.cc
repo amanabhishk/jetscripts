@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
 
   // fastjet setup
   //QCD aware clustering of status 70 particles
-  AntiKtMeasure *antikt_measure = new AntiKtMeasure(R);
-  QCDAware *qcd_aware_clustering_definition = new QCDAware(antikt_measure);
+  KtMeasure *kt_measure = new KtMeasure(1);
+  QCDAware *qcd_aware_clustering_definition = new QCDAware(kt_measure);
   std::vector <fastjet::PseudoJet> qcd_aware_clustering_input; //particles that will be clustered into jets
 
   //Normal clustering of final state particles

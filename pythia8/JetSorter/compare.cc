@@ -15,7 +15,7 @@ void compare()
 	TDirectory *curdir = gDirectory;
 
 	//vector<vector<string>> files;
-	vector<string> files  = {"had_z.root","had_g.root","had_d.root","phy_z.root","phy_g.root","phy_d.root"};
+	vector<string> files  = {"qcd_z.root","qcd_g.root","qcd_d.root","phy_z.root","phy_g.root","phy_d.root"};
 	//vector<string> qcd_def  = {"z1.root","g1.root","d1.root"};
 	//file.push_back(physics_def);
 	//file.push_back(qcd_def);
