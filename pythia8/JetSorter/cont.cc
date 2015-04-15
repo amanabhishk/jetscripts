@@ -27,7 +27,8 @@ void cont()
 	unsigned int N = (unsigned int)tree->GetEntries(); 
 	cout<<N<<" events."<<endl;
 	
-	int in, out;               //exact number of particles stored for each event 
+	int in; 
+	unsigned short out;               //exact number of particles stored for each event 
   	float pt1, pt2, wt;
 	
 	tree->SetBranchAddress("pT1",&pt1);
@@ -55,7 +56,7 @@ void cont()
 		for(unsigned int k = 0; k < diag.size(); k++)
 		{
 			diag[k]->Fill(pt1,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
-			diag[k]->Fill(pt1,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
+			diag[k]->Fill(pt2,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
 		}
 	}
 	
@@ -161,13 +162,7 @@ void cont()
  	TFile outFile("out.root", "RECREATE");
  	TH1D *h = new TH1D("h",";p_{T} (GeV);Fraction",1000,20,2000);
  	gStyle->SetOptStat(kFALSE);
-	for(unsigned int a = 0; a < all.size(); ++a) 
-	{
-		diag[a]->Write();
-		all[a]->Write();
-		tdrDraw(all[a],"",kOpenCircle,kGray+2,kSolid,-1,1001,a);
-
-	}		
+		
 	// // gStyle->SetOptStat(kFALSE); //removes old legend
 	// // tdrDraw(gluons,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
 	// // tdrDraw(light_quarks,"",kFullCircle,kGreen-1,kSolid,-1,1001,kYellow-9);
@@ -179,10 +174,33 @@ void cont()
 
 	// TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
 
+	int colors[]={kBlue-9,kYellow-9,kAzure-8,kGreen-9,kRed-9,kYellow-5,kCyan-6};
 	for(unsigned int a = 0; a < all.size(); ++a) 
 	{
-		hs->Add(all[a]);
+		if(all[a]->GetMaximum() != 0) 
+		{
+			cout<<a<<endl;
+			diag[a]->Write();
+			all[a]->Write();
+		}
 	}
+
+	tdrDraw(d55,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
+	hs->Add(d55);
+	tdrDraw(d44,"",kPlus,kBlue+2,kSolid,-1,1001,kYellow-9);
+	hs->Add(d44);
+	tdrDraw(d14,"",kPlus,kBlue+2,kSolid,-1,1001,kAzure-8);
+	hs->Add(d14);
+	tdrDraw(d66,"",kPlus,kBlue+2,kSolid,-1,1001,kGreen-9);
+	hs->Add(d66);
+	tdrDraw(d33,"",kPlus,kBlue+2,kSolid,-1,1001,kRed-9);
+	hs->Add(d33);
+	tdrDraw(d22,"",kPlus,kBlue+2,kSolid,-1,1001,kGreen-8);
+	hs->Add(d22);
+	tdrDraw(d41,"",kPlus,kBlue+2,kSolid,-1,1001,kCyan-6);
+	hs->Add(d41);
+	tdrDraw(d11,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
+	hs->Add(d11);
 	// // //light_quarks->Add(strange);
 	// // hs->Add(bottom);
 	// // hs->Add(charm);
@@ -191,7 +209,7 @@ void cont()
 	// // hs->Add(gluons);
 	// // hs->Add(unmatched);
 
-	hs->Write();
+	
 	hs->Draw();
 
 	hs->GetXaxis()->SetNoExponent();
@@ -243,7 +261,8 @@ void cont()
 	// // etacut->Draw();
 	
 	
-	gPad->SetLogx();       
+	gPad->SetLogx();    
+	hs->Write();   
 	// // //c1->SaveAs("output.pdf");
 }
 
