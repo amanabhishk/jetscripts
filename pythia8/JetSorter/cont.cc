@@ -158,7 +158,7 @@ void cont()
  // //  	TH1D *unmatched = unmatchedFrac.ProjectionX("unmatched","");
 	
  	assert(all.size()==diag.size());
- 	TFile outFile("out.root", "RECREATE");
+ 	TFile* outFile = new TFile("out.root", "RECREATE");
  	TH1D *h = new TH1D("h",";p_{T} (GeV);Fraction",1000,20,2000);
  	gStyle->SetOptStat(kFALSE);
 		
@@ -169,6 +169,7 @@ void cont()
 	// // tdrDraw(charm,"",kFullCircle,kGreen-1,kSolid,-1,1001,kGreen-9);
 	// // tdrDraw(bottom,"",kFullCircle,kRed-2,kSolid,-1,1001,kRed-9);
 
+	curdir->cd();
 	THStack *hs  = new THStack("hs","Feynman diagrams for dijet event");
 
 	// TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
@@ -179,8 +180,6 @@ void cont()
 		if(all[a]->GetMaximum() != 0) 
 		{
 			cout<<a<<endl;
-			diag[a]->Write();
-			all[a]->Write();
 		}
 	}
 
@@ -200,6 +199,8 @@ void cont()
 	hs->Add(d41);
 	tdrDraw(d11,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
 	hs->Add(d11);
+
+
 	// // //light_quarks->Add(strange);
 	// // hs->Add(bottom);
 	// // hs->Add(charm);
@@ -219,7 +220,19 @@ void cont()
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Diagram contribution");
 
-	//diag[0]->Draw();
+	TH1D* mid = new TH1D("line","line",ptBins,ptRange);
+	mid->Add(d55);
+	mid->Add(d14);
+	mid->Add(d66);
+	mid->Add(d44);
+	mid->Add(d22,0.5);
+	mid->Add(d33,0.5);
+	tdrDraw(mid,"HIST",kNone,kBlack,kDashed,-1,kNone,0);
+
+
+
+	
+	//mid->Draw();
 	// hs->SetLogx();
 
 	// // double x0, y0;
@@ -267,8 +280,14 @@ void cont()
 	// // etacut->Draw();
 	
 	
+	
 	gPad->SetLogx();    
-	hs->Write();   
+	outFile->cd();
+	//hs->Write(); 
+
+	//outFile->Close();
+	curdir->cd();
+
 	// // //c1->SaveAs("output.pdf");
 }
 
