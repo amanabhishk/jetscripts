@@ -21,7 +21,7 @@ void cont()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("5000dijet_feynman.root","READ");
+	TFile *f = new TFile("100000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -38,12 +38,12 @@ void cont()
 
 	vector<TProfile*> diag(0);
 	
-	for(unsigned int x = 1; x < 7; x++)
+	for(unsigned int x = 11; x < 67; x++)
 	{
-		for(unsigned int y = 1; y < 7; y++)
+		if(x%10 < 7 && x%10 != 0)
 		{
 			std::stringstream temp("");
-			temp<<x<<y;
+			temp<<x;
 			diag.push_back(new TProfile(temp.str().c_str(),temp.str().c_str(),ptBins,ptRange));
 		}
 	}
@@ -54,7 +54,8 @@ void cont()
 		
 		for(unsigned int k = 0; k < diag.size(); k++)
 		{
-			diag[k]->Fill(pt1,(abs(10*in+out) == k)? 1:0,wt) ; 
+			diag[k]->Fill(pt1,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
+			diag[k]->Fill(pt1,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
 		}
 	}
 	
@@ -162,8 +163,9 @@ void cont()
  	gStyle->SetOptStat(kFALSE);
 	for(unsigned int a = 0; a < all.size(); ++a) 
 	{
+		diag[a]->Write();
 		all[a]->Write();
-		tdrDraw(all[a],"",kOpenCircle,kGray+2,kSolid,-1,1001,a%5);
+		tdrDraw(all[a],"",kOpenCircle,kGray+2,kSolid,-1,1001,a);
 
 	}		
 	// // gStyle->SetOptStat(kFALSE); //removes old legend
@@ -189,6 +191,7 @@ void cont()
 	// // hs->Add(gluons);
 	// // hs->Add(unmatched);
 
+	hs->Write();
 	hs->Draw();
 
 	hs->GetXaxis()->SetNoExponent();
@@ -199,7 +202,7 @@ void cont()
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Flavor fraction");
 
-	diag[0]->Draw();
+	//diag[0]->Draw();
 	// hs->SetLogx();
 
 	// // double x0, y0;
