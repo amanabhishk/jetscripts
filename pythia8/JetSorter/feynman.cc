@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 
     assert(out.size()==2);
     assert(in.size()==2);
-    goodEvent = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8;
+    goodEvent = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8 && fabs(event[out[0]].eta()<etaMax) && fabs(event[out[1]].eta()<etaMax);
     if(!goodEvent) continue;
 
     weight = pythia.info.weight();
