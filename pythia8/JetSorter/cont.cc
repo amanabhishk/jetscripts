@@ -21,14 +21,13 @@ void cont()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("100000dijet_feynman.root","READ");
+	TFile *f = new TFile("500000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
 	cout<<N<<" events."<<endl;
 	
-	int in; 
-	unsigned short out;               //exact number of particles stored for each event 
+	int in,out;               //exact number of particles stored for each event 
   	float pt1, pt2, wt;
 	
 	tree->SetBranchAddress("pT1",&pt1);
@@ -170,7 +169,7 @@ void cont()
 	// // tdrDraw(charm,"",kFullCircle,kGreen-1,kSolid,-1,1001,kGreen-9);
 	// // tdrDraw(bottom,"",kFullCircle,kRed-2,kSolid,-1,1001,kRed-9);
 
-	THStack *hs  = new THStack("hs","Diagrams");
+	THStack *hs  = new THStack("hs","Feynman diagrams for dijet event");
 
 	// TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
 
@@ -185,7 +184,7 @@ void cont()
 		}
 	}
 
-	tdrDraw(d55,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
+	tdrDraw(d55,"",kPlus,kBlue+2,kSolid,-1,1001,kGreen-6);
 	hs->Add(d55);
 	tdrDraw(d44,"",kPlus,kBlue+2,kSolid,-1,1001,kYellow-9);
 	hs->Add(d44);
@@ -218,7 +217,7 @@ void cont()
 	hs->GetXaxis()->SetMoreLogLabels(kTRUE);
 	//hs->GetXaxis()->SetNdivisions(5,kTRUE);
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
-	hs->GetYaxis()->SetTitle("Flavor fraction");
+	hs->GetYaxis()->SetTitle("Diagram contribution");
 
 	//diag[0]->Draw();
 	// hs->SetLogx();
@@ -228,7 +227,7 @@ void cont()
 	// // y0 = 0.05;
 	// // //TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 				//physics def
 	// // //TLegend *leg = tdrLeg(0.5,0.82+0.07,0.175,0.50+0.07);				//hadronic def
-	// // TLegend *leg = tdrLeg(0.5+0.5,0.82-0.2,0.175+0.5,0.50-0.2);		//QCDaware def
+	TLegend *leg = tdrLeg(0.5,0.2,0.275,0.80);		//QCDaware def
 	
 
 	
@@ -247,14 +246,21 @@ void cont()
 	// // etacut->SetHeader("#left|#eta#right|< 1.3,");
 
 	
-	// // leg->AddEntry(bottom,"Bottom","f");
+	leg->AddEntry(d11,"gg#rightarrowgg","f");
+	leg->AddEntry(d41,"q#bar{q}#rightarrowgg","f");
+	leg->AddEntry(d22,"gq#rightarrowgq","f");
+	leg->AddEntry(d33,"g#bar{q}#rightarrowg#bar{q}","f");
+	leg->AddEntry(d66,"#bar{q}#bar{q}#rightarrow#bar{q}#bar{q}","f");
+	leg->AddEntry(d14,"gg#rightarrowq#bar{q}","f");
+	leg->AddEntry(d44,"q#bar{q}#rightarrowq#bar{q}","f");
+	leg->AddEntry(d55,"qq#rightarrowqq","f");
 	// // leg->AddEntry(charm,"Charm","f");
 	// // leg->AddEntry(strange,"Strange","f");
 	// // leg->AddEntry(light_quarks,"Light","f");
 	// // leg->AddEntry(gluons,"Gluon","f");
 	// // leg->AddEntry(unmatched,"None","f");
 	
-	// // leg->Draw();
+	leg->Draw();
 	// // heading->Draw();
 	// // sample->Draw();
 	// // alphacut->Draw();
