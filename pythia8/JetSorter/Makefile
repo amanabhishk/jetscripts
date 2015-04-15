@@ -43,7 +43,7 @@ hadronic_def: $$@.cc $(PYTHIALIB)
 QCDaware_def: $$@.cc $(PYTHIALIB) $(QCDLIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
-extra_task: $$@.cc $(PYTHIALIB)
+feynman: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
 physics_def: $$@.cc $(PYTHIALIB)
