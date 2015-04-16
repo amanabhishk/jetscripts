@@ -21,7 +21,7 @@ void draw_dijet_fd()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("100000dijet_feynman.root","READ");
+	TFile *f = new TFile("500000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -180,19 +180,21 @@ void draw_dijet_fd()
 		}
 	}
 
-	tdrDraw(d55,"",kPlus,kBlue+2,kSolid,-1,1001,kGreen-6);
+	tdrDraw(d55,"",kPlus,kBlue+2,kSolid,-1,1001,kYellow-10);
 	hs->Add(d55);
 	tdrDraw(d44,"",kPlus,kBlue+2,kSolid,-1,1001,kYellow-9);
 	hs->Add(d44);
-	tdrDraw(d14,"",kPlus,kBlue+2,kSolid,-1,1001,kAzure-8);
+	tdrDraw(d14,"",kPlus,kBlue+2,kSolid,-1,1001,kYellow-6);
 	hs->Add(d14);
-	tdrDraw(d66,"",kPlus,kBlue+2,kSolid,-1,1001,kGreen-9);
+	tdrDraw(d66,"",kPlus,kBlue+2,kSolid,-1,1001,kYellow-2);
 	hs->Add(d66);
-	tdrDraw(d33,"",kPlus,kBlue+2,kSolid,-1,1001,kRed-9);
+	
+	tdrDraw(d33,"",kPlus,kBlue+2,kSolid,-1,1001,kRed-10);
 	hs->Add(d33);
-	tdrDraw(d22,"",kPlus,kBlue+2,kSolid,-1,1001,kGreen-8);
+	tdrDraw(d22,"",kPlus,kBlue+2,kSolid,-1,1001,kRed-9);
 	hs->Add(d22);
-	tdrDraw(d41,"",kPlus,kBlue+2,kSolid,-1,1001,kCyan-6);
+	
+	tdrDraw(d41,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-7);
 	hs->Add(d41);
 	tdrDraw(d11,"",kPlus,kBlue+2,kSolid,-1,1001,kBlue-9);
 	hs->Add(d11);
