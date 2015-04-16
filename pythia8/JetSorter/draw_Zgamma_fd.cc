@@ -21,17 +21,16 @@ void cont()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("500000dijet_feynman.root","READ");
+	TFile *f = new TFile("10000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
 	cout<<N<<" events."<<endl;
 	
 	int in,out;               //exact number of particles stored for each event 
-  	float pt1, pt2, wt;
+  	float pt, wt;
 	
-	tree->SetBranchAddress("pT1",&pt1);
-	tree->SetBranchAddress("pT2",&pt2);
+	tree->SetBranchAddress("pT",&pt);
 	tree->SetBranchAddress("weight",&wt);
 	tree->SetBranchAddress("outType",&out);
 	tree->SetBranchAddress("inType",&in);
@@ -51,11 +50,9 @@ void cont()
 	for(unsigned int x=0; x != N; ++x)
 	{
 		tree->GetEntry(x);
-		
 		for(unsigned int k = 0; k < diag.size(); k++)
 		{
-			diag[k]->Fill(pt1,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
-			diag[k]->Fill(pt2,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
+			diag[k]->Fill(pt,(abs(6*in - 7 + out) == k)? 1:0,wt) ;
 		}
 	}
 	

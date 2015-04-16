@@ -76,19 +76,18 @@ int main(int argc, char* argv[])
   UShort_t size = 2000;     //CHECK: expected maximum number of particles to be stored for each event. Will lead to SEGFAULT if small.
   
   int inType, outType;               //exact number of particles stored for each event 
-  float pT1, pT2, weight;
+  float pT, weight;
 
   TTree *tree = new TTree("Events","TTree of Feynman diagrams");
   tree->Branch("inType", &inType, "inType/I");
   tree->Branch("outType", &outType, "outType/I");
   tree->Branch("weight", &weight, "weight/F");
-  tree->Branch("pT1", &pT1, "pT1/F");
-  tree->Branch("pT2", &pT2, "pT2/F");
+  tree->Branch("pT1", &pT, "pT1/F");
   
   int lim, count;
   vector<int> out;
   vector<int> in;
-  bool goodEvent;
+  bool back2back;
 
   std::clock_t start = std::clock();
   
@@ -124,18 +123,26 @@ int main(int argc, char* argv[])
 
     assert(out.size()==2);
     assert(in.size()==2);
-    goodEvent = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8 && fabs(event[out[0]].eta()<etaMax) && fabs(event[out[1]].eta()<etaMax);
-    if(!goodEvent) continue;
-
+    
     weight = pythia.info.weight();
     inType = vertexCheck(event[in[0]].id(),event[in[1]].id());
     outType = vertexCheck(event[out[0]].id(),event[out[1]].id());
-    pT1 = event[out[0]].pT();
-    pT2 = event[out[1]].pT();
-    //cout<<event[in[0]].id()<<" "<<event[in[1]].id()<<" , "<<event[out[0]].id()<<" "<<event[out[1]].id()<<", "<<"Type:"<<inType<<outType<<endl;
-    //inType = UShort_t(count+1);
-    tree->Fill();
-  
+    
+    back2back = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8;
+    
+    if(back2back && fabs(event[out[0]].eta()<etaMax));
+    {
+      
+      pT = event[out[0]].pT();
+      tree->Fill();
+    }
+
+    //back2back = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8;
+    if(back2back  && fabs(event[out[1]].eta()<etaMax));
+    {
+      pT = event[out[1]].pT();
+      tree->Fill();
+    }
   }
 
   tree->AutoSave("Overwrite"); 
