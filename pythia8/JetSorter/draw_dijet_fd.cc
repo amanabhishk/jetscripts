@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void cont()
+void draw_dijet_fd()
 {
 
 	bool merge = false;
@@ -21,7 +21,7 @@ void cont()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("10000dijet_feynman.root","READ");
+	TFile *f = new TFile("100000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -30,7 +30,7 @@ void cont()
 	int in,out;               //exact number of particles stored for each event 
   	float pt, wt;
 	
-	tree->SetBranchAddress("pT",&pt);
+	tree->SetBranchAddress("pT1",&pt);
 	tree->SetBranchAddress("weight",&wt);
 	tree->SetBranchAddress("outType",&out);
 	tree->SetBranchAddress("inType",&in);

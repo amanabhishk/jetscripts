@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   tree->Branch("inType", &inType, "inType/I");
   tree->Branch("outType", &outType, "outType/I");
   tree->Branch("weight", &weight, "weight/F");
-  tree->Branch("pT1", &pT, "pT1/F");
+  tree->Branch("pT", &pT, "pT/F");
   
   int lim, count;
   vector<int> out;
