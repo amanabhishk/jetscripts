@@ -27,12 +27,8 @@ gammajet_eventgen: $$@.cc $(PYTHIALIB)
 dijet_eventgen: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
-#Physics-definition algorithm, sample specific
-Zjet_analysis: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-gammajet_analysis: $$@.cc $(PYTHIALIB)
-	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-dijet_analysis: $$@.cc $(PYTHIALIB)
+#Physics-definition algorithm
+physics_def: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
 #Hadron-based definition
@@ -43,10 +39,10 @@ hadronic_def: $$@.cc $(PYTHIALIB)
 QCDaware_def: $$@.cc $(PYTHIALIB) $(QCDLIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
-feynman: $$@.cc $(PYTHIALIB)
+#Feynman generation
+feynman_dijet: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
-
-physics_def: $$@.cc $(PYTHIALIB)
+feynman_Zgamma: $$@.cc $(PYTHIALIB)
 	$(CXX) $^ -w $(CXXFLAGS) $(ROOT) $(PYTHIA) $(FASTJET) -ldl -o $@.exe 
 
 
