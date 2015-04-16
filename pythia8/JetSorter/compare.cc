@@ -7,7 +7,6 @@
 #include <string>
 #include <sstream>
 
-
 using namespace std;
 
 void compare()
@@ -15,25 +14,25 @@ void compare()
 	TDirectory *curdir = gDirectory;
 
 	//vector<vector<string>> files;
-	vector<string> files  = {"qcd_z.root","qcd_g.root","qcd_d.root","phy_z.root","phy_g.root","phy_d.root"};
-	//vector<string> qcd_def  = {"z1.root","g1.root","d1.root"};
+	string files[]  = {"qcd_z.root","qcd_g.root","qcd_d.root","phy_z.root","phy_g.root","phy_d.root"};
+	//string[] qcd_def  = {"z1.root","g1.root","d1.root"};
 	//file.push_back(physics_def);
 	//file.push_back(qcd_def);
-	vector<string> algo  = {"qcd","qcd","qcd","physics","physics","physics"};
-    vector<int> markers = {kFullSquare,kFullCircle,kFullTriangleUp,kOpenSquare,kOpenCircle,kOpenTriangleUp};
-    vector<int> color = {kRed-3,kBlue,kGreen-6};
-    vector<string> variable = {"sigma2","pTD","multiplicity"};
-    vector<string> partons = {"gluon","quark","unmatched"};
-    vector<float> x_min = {0, 0, 0};
-    vector<float> x_max = {0.2, 1, 60};
-    vector<float> y_min = {0, 0, 0};
-    vector<float> y_max = {0.08, 0.08, 0.1};
-    vector<int> bins = {100, 100, 60};
+	string algo[] = {"qcd","qcd","qcd","physics","physics","physics"};
+    int markers[] = {kFullSquare,kFullCircle,kFullTriangleUp,kOpenSquare,kOpenCircle,kOpenTriangleUp};
+    int color[] = {kRed-3,kBlue,kGreen-6};
+    string variable[] = {"sigma2","pTD","multiplicity"};
+    string partons[] = {"gluon","quark","unmatched"};
+    float x_min[] = {0, 0, 0};
+    float x_max[] = {0.2, 1, 60};
+    float y_min[] = {0, 0, 0};
+    float y_max[] = {0.08, 0.08, 0.1};
+    int bins[] = {100, 100, 60};
 
-    vector<vector<vector<TH1D*>>> plots;
+    vector<vector<vector<TH1D*> > > plots;
     //for(unsigned int t=0; t != variable.size(); ++t) //loop over variables
 	//{
-	for(unsigned int q=0; q != files.size(); ++q) //loop over files
+	for(unsigned int q=0; q != 6; ++q) //loop over files
 	{
 		std::stringstream tmpString("");
 		tmpString << files[q];
@@ -56,11 +55,11 @@ void compare()
 		tree->SetBranchAddress("jet_multiplicity",&constituents);
 
 		
-		vector<vector<TH1D*>> one_sample;
-		for(unsigned int p = 0; p < partons.size(); ++p) //book histograms for gluons, quarks, and unmatched
+		vector<vector<TH1D*> > one_sample;
+		for(unsigned int p = 0; p < 3; ++p) //book histograms for gluons, quarks, and unmatched
 		{
 			vector<TH1D*> s;
-			for(unsigned int k=0; k < variable.size(); ++k) //QGL variables
+			for(unsigned int k=0; k < 3; ++k) //QGL variables
 			{
 				std::stringstream temp("");
 				temp << variable[k] << "_" << partons[p];
@@ -104,13 +103,13 @@ void compare()
 	// for(int )
 	vector<TH1D*> xkcd;
 	TH1D *h1 = new TH1D("h1",";#sigma_{2};Events",bins[0],x_min[0],x_max[0]);
-	TH1D *h2 = new TH1D("h2",";pTD;Events",bins[1],x_min[1],x_max[1]);
+	TH1D *h2 = new TH1D("h2",";p_{T}D;Events",bins[1],x_min[1],x_max[1]);
 	TH1D *h3 = new TH1D("h3",";multiplicity;Events",bins[2],x_min[2],x_max[2]);
 	xkcd.push_back(h1);
 	xkcd.push_back(h2);
 	xkcd.push_back(h3);
 		
-	for(unsigned int i = 0; i < xkcd.size(); ++i)
+	for(unsigned int i = 0; i < 3; ++i)
 	{
 		xkcd[i] ->SetMinimum(y_min[i]);
 		xkcd[i] ->SetMaximum(y_max[i]);
