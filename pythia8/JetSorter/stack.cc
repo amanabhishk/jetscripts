@@ -20,7 +20,7 @@ void stack()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("phy_d.root","READ");
+	TFile *f = new TFile("qcd_g.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -101,22 +101,28 @@ void stack()
 	double x0, y0;
 	x0 = 0.4;
 	y0 = 0.05;
-	TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 				//physics def
-	//TLegend *leg = tdrLeg(0.5,0.82+0.07,0.175,0.50+0.07);				//hadronic def
-	// TLegend *leg = tdrLeg(0.5+0.5,0.82-0.2,0.175+0.5,0.50-0.2);		//QCDaware def
-	
 
-	
-	// TLegend *sample = tdrLeg(0.675-0.05-x0,0.50-y0,0.775-0.05-x0,0.505-y0);				//QCDaware
-	// TLegend *alphacut = tdrLeg(0.77-x0,0.50-0.05-y0,0.87-x0,0.505-0.05-y0);				//goes
-	// TLegend *etacut = tdrLeg(0.61-x0,0.50-0.05-y0,0.71-x0,0.505-0.05-y0);				//here
+	// //hadronic def
+	// TLegend *leg = tdrLeg(0.642617,0.304878,0.968121,0.623693);				
+	// TLegend *sample = tdrLeg(0.173658,0.3223-0.01,0.729027,0.54878-0.01);			//
+	// TLegend *alphacut = tdrLeg(0.162752+0.16,0.336237,0.708054+0.16,0.409408);			//hadronic
+	// TLegend *etacut = tdrLeg(0.166107,0.334495 ,0.709732,0.407666);			
 
-	
-	TLegend *sample = tdrLeg(0.675-0.05,0.50,0.775-0.05,0.505);			//everything except
-	TLegend *alphacut = tdrLeg(0.77,0.50-0.05,0.87,0.505-0.05);			//QCD
-	TLegend *etacut = tdrLeg(0.61,0.50-0.05,0.71,0.505-0.05);			//aware
+	//QCDaware def
+	TLegend *leg = tdrLeg(0.5+0.5,0.82-0.2,0.175+0.5,0.50-0.2);			
+	TLegend *sample = tdrLeg(0.675-0.05-x0,0.50-y0,0.775-0.05-x0,0.505-y0);				//QCDaware
+	TLegend *alphacut = tdrLeg(0.77-x0,0.50-0.05-y0,0.87-x0,0.505-0.05-y0);				//goes
+	TLegend *etacut = tdrLeg(0.61-x0,0.50-0.05-y0,0.71-x0,0.505-0.05-y0);				//here
 
-	sample->SetHeader("dijet sample");
+	////physics def	
+	// TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 				
+	// TLegend *sample = tdrLeg(0.675-0.05,0.50,0.775-0.05,0.505);			//
+	// TLegend *alphacut = tdrLeg(0.77,0.50-0.05,0.87,0.505-0.05);			//physics
+	// TLegend *etacut = tdrLeg(0.61,0.50-0.05,0.71,0.505-0.05);			//
+
+
+
+	sample->SetHeader("#gamma+jet sample");
 	//TLegend *heading = tdrLeg(0.675-0.4,0.50+0.5,0.775-0.4,0.505+0.5); 	
 	//heading->SetHeader("Hadronic Definition, #sqrt{s} = 8 TeV");
 	alphacut->SetHeader("#alpha<0.3");
@@ -137,6 +143,6 @@ void stack()
 	
 	
 	gPad->SetLogx();       
-	//c1->SaveAs("output.pdf");
+	c1->SaveAs("/home/aman/Documents/Thesis/Figures/stack_final/qcd_g.pdf");
 }
 
