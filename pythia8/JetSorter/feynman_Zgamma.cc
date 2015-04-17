@@ -39,7 +39,7 @@
 
 
 
-int vertexCheck(int x, int y)
+int vertexCheckIn(int x, int y)
 {
   if( x == 21 && y == 21) return 1;
   else if( x == 21 && abs(y) < 7 && y > 0) return 2;
@@ -47,9 +47,22 @@ int vertexCheck(int x, int y)
   else if( abs(x) < 7 && x > 0 && abs(y) < 7 && y < 0) return 4;
   else if( abs(x) < 7 && x > 0 && abs(y) < 7 && y > 0) return 5;
   else if( abs(x) < 7 && x < 0 && abs(y) < 7 && y < 0) return 6;
-  else vertexCheck(y,x);
+  else vertexCheckIn(y,x);
 }
 
+int vertexCheckOut(int x, int y)
+{
+  if(x == 21) return 7;
+  else if( abs(x) < 7 && x > 0 ) return 8;
+  else if( abs(x) < 7 && x < 0 ) return 9;
+  else vertexCheckOut(y,x);
+}
+
+bool isParton(int x)
+{
+  if(abs(x) < 7 || abs(x) == 21) return true;
+  else return false;
+}
 
 using namespace Pythia8;
 
@@ -65,11 +78,11 @@ int main(int argc, char* argv[])
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
-  pythia.readFile("pythia_dijet.cmnd");
+  pythia.readFile("pythia_Zjet.cmnd");
   pythia.init();
 
   std::stringstream outputFilename("");
-  outputFilename << nEvent <<"dijet_feynman.root";
+  outputFilename << nEvent <<"Zjet_feynman.root";
 
   TFile outFile(outputFilename.str().c_str(), "RECREATE");
   
@@ -105,11 +118,12 @@ int main(int argc, char* argv[])
       assert(count<size);
       Particle& p = pythia.event.at(t);
 
-      if(event[t].status() == -23) 
+      if(event[t].status() == -22 && abs(event[t].id()) == 23) 
       {
         out.push_back(t);
         //fillTree(p, count, id, pT, eta, phi, m);
       }
+      else if (event[t].status() == -23 && (isParton(event[t].id()) || abs(event[t].id()) == 22)) out.push_back(t);
       
       //hadronic_definition_status_codes(event, t, count, status, id, pT, eta, phi, m);
       else if(event[t].status() == -21)
@@ -125,9 +139,11 @@ int main(int argc, char* argv[])
     assert(in.size()==2);
     
     weight = pythia.info.weight();
-    inType = vertexCheck(event[in[0]].id(),event[in[1]].id());
-    outType = vertexCheck(event[out[0]].id(),event[out[1]].id());
-    
+    inType = vertexCheckIn(event[in[0]].id(),event[in[1]].id());
+    outType = vertexCheckOut(event[out[0]].id(),event[out[1]].id());
+    cout<<inType<<outType<<" "<<event[in[0]].name()<<" "<<event[in[1]].name()<<" "<<event[out[0]].name()<<" "<<event[out[1]].name()<<endl;
+
+
     back2back = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8;
     
     if(back2back && fabs(event[out[0]].eta()<etaMax));
