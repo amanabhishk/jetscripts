@@ -78,11 +78,11 @@ int main(int argc, char* argv[])
   // Pythia setup
   Pythia pythia;
   Event& event = pythia.event;
-  pythia.readFile("pythia_Zjet.cmnd");
+  pythia.readFile("pythia_gammajet.cmnd");
   pythia.init();
 
   std::stringstream outputFilename("");
-  outputFilename << nEvent <<"Zjet_feynman.root";
+  outputFilename << nEvent <<"gammajet_feynman.root";
 
   TFile outFile(outputFilename.str().c_str(), "RECREATE");
   
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
   tree->Branch("inType", &inType, "inType/I");
   tree->Branch("outType", &outType, "outType/I");
   tree->Branch("weight", &weight, "weight/F");
-  tree->Branch("pT1", &pT, "pT1/F");
+  tree->Branch("pT", &pT, "pT/F");
   
   int lim, count;
   vector<int> out;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
     weight = pythia.info.weight();
     inType = vertexCheckIn(event[in[0]].id(),event[in[1]].id());
     outType = vertexCheckOut(event[out[0]].id(),event[out[1]].id());
-    cout<<inType<<outType<<" "<<event[in[0]].name()<<" "<<event[in[1]].name()<<" "<<event[out[0]].name()<<" "<<event[out[1]].name()<<endl;
+    //cout<<inType<<outType<<" "<<event[in[0]].name()<<" "<<event[in[1]].name()<<" "<<event[out[0]].name()<<" "<<event[out[1]].name()<<endl;
 
 
     back2back = deltaPhi(event[out[0]].phi(),event[out[1]].phi())>2.8;
