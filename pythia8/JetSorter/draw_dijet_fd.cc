@@ -21,7 +21,7 @@ void draw_dijet_fd()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("500000dijet_feynman.root","READ");
+	TFile *f = new TFile("5000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -30,7 +30,7 @@ void draw_dijet_fd()
 	int in,out;               //exact number of particles stored for each event 
   	float pt, wt;
 	
-	tree->SetBranchAddress("pT1",&pt);
+	tree->SetBranchAddress("pT",&pt);
 	tree->SetBranchAddress("weight",&wt);
 	tree->SetBranchAddress("outType",&out);
 	tree->SetBranchAddress("inType",&in);
@@ -167,9 +167,10 @@ void draw_dijet_fd()
 	// // tdrDraw(bottom,"",kFullCircle,kRed-2,kSolid,-1,1001,kRed-9);
 
 	curdir->cd();
-	THStack *hs  = new THStack("hs","Feynman diagrams for dijet event");
+	THStack *hs  = new THStack("hs","stack");
 
-	// TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
+	// TH1D *h = new TH1D("h",";p_{T} (GeV);Fraction",1000,20,2000);
+	TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
 
 	int colors[]={kBlue-9,kYellow-9,kAzure-8,kGreen-9,kRed-9,kYellow-5,kCyan-6};
 	for(unsigned int a = 0; a < all.size(); ++a) 
@@ -218,6 +219,10 @@ void draw_dijet_fd()
 	//hs->GetXaxis()->SetNdivisions(5,kTRUE);
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Diagram contribution");
+	hs->GetYaxis()->SetTitleSize(0.05);
+	hs->GetYaxis()->SetTitleOffset(1.2);
+	hs->GetXaxis()->SetTitleSize(0.05);
+	hs->GetXaxis()->SetTitleOffset(1);
 
 	TH1D* mid = new TH1D("line","line",ptBins,ptRange);
 	mid->Add(d55);
@@ -239,7 +244,7 @@ void draw_dijet_fd()
 	// // y0 = 0.05;
 	// // //TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 				//physics def
 	// // //TLegend *leg = tdrLeg(0.5,0.82+0.07,0.175,0.50+0.07);				//hadronic def
-	TLegend *leg = tdrLeg(0.5,0.2,0.275,0.80);		//QCDaware def
+	TLegend *leg = tdrLeg(0.199664,0.437282,0.426174,0.87108,0.03);		//QCDaware def
 	
 
 	
