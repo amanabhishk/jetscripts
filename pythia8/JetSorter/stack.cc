@@ -20,7 +20,7 @@ void stack()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("phy_z.root","READ");
+	TFile *f = new TFile("phy_d.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("tree");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -89,7 +89,6 @@ void stack()
 	// hs->GetXaxis()->SetNoExponent(kTRUE);
 	hs->GetXaxis()->SetRange(9,47);
 	hs->GetXaxis()->SetMoreLogLabels(kTRUE);
-	//hs->GetXaxis()->SetNdivisions(5,kTRUE);
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Flavor fraction");
 	hs->GetYaxis()->SetTitleSize(0.05);
@@ -102,33 +101,33 @@ void stack()
 	double x0, y0;
 	x0 = 0.4;
 	y0 = 0.05;
-	//TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 				//physics def
+	TLegend *leg = tdrLeg(0.5,0.82-0.1,0.175,0.50-0.1); 				//physics def
 	//TLegend *leg = tdrLeg(0.5,0.82+0.07,0.175,0.50+0.07);				//hadronic def
-	TLegend *leg = tdrLeg(0.5+0.5,0.82-0.2,0.175+0.5,0.50-0.2);		//QCDaware def
+	// TLegend *leg = tdrLeg(0.5+0.5,0.82-0.2,0.175+0.5,0.50-0.2);		//QCDaware def
 	
 
 	
-	TLegend *sample = tdrLeg(0.675-0.05-x0,0.50-y0,0.775-0.05-x0,0.505-y0);				//QCDaware
-	TLegend *alphacut = tdrLeg(0.77-x0,0.50-0.05-y0,0.87-x0,0.505-0.05-y0);				//goes
-	TLegend *etacut = tdrLeg(0.61-x0,0.50-0.05-y0,0.71-x0,0.505-0.05-y0);				//here
+	// TLegend *sample = tdrLeg(0.675-0.05-x0,0.50-y0,0.775-0.05-x0,0.505-y0);				//QCDaware
+	// TLegend *alphacut = tdrLeg(0.77-x0,0.50-0.05-y0,0.87-x0,0.505-0.05-y0);				//goes
+	// TLegend *etacut = tdrLeg(0.61-x0,0.50-0.05-y0,0.71-x0,0.505-0.05-y0);				//here
 
-	TLegend *heading = tdrLeg(0.675-0.4,0.50+0.5,0.775-0.4,0.505+0.5); 	
-	// TLegend *sample = tdrLeg(0.675-0.05,0.50,0.775-0.05,0.505);			//everything except
-	// TLegend *alphacut = tdrLeg(0.77,0.50-0.05,0.87,0.505-0.05);			//QCD
-	// TLegend *etacut = tdrLeg(0.61,0.50-0.05,0.71,0.505-0.05);			//aware
+	
+	TLegend *sample = tdrLeg(0.675-0.05,0.50,0.775-0.05,0.505);			//everything except
+	TLegend *alphacut = tdrLeg(0.77,0.50-0.05,0.87,0.505-0.05);			//QCD
+	TLegend *etacut = tdrLeg(0.61,0.50-0.05,0.71,0.505-0.05);			//aware
 
-	sample->SetHeader("Z+jet sample");
+	sample->SetHeader("dijet sample");
+	//TLegend *heading = tdrLeg(0.675-0.4,0.50+0.5,0.775-0.4,0.505+0.5); 	
 	//heading->SetHeader("Hadronic Definition, #sqrt{s} = 8 TeV");
 	alphacut->SetHeader("#alpha<0.3");
 	etacut->SetHeader("#left|#eta#right|< 1.3,");
 
-	
-	leg->AddEntry(bottom,"Bottom","f");
-	leg->AddEntry(charm,"Charm","f");
-	leg->AddEntry(strange,"Strange","f");
-	leg->AddEntry(light_quarks,"Light","f");
+	leg->AddEntry(unmatched,"None","f");	
 	leg->AddEntry(gluons,"Gluon","f");
-	leg->AddEntry(unmatched,"None","f");
+	leg->AddEntry(light_quarks,"Light","f");
+	leg->AddEntry(strange,"Strange","f");
+	leg->AddEntry(charm,"Charm","f");
+	leg->AddEntry(bottom,"Bottom","f");
 	
 	leg->Draw();
 	// heading->Draw();
