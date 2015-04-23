@@ -21,7 +21,7 @@ void draw_dijet_fd()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("5000dijet_feynman.root","READ");
+	TFile *f = new TFile("1000000dijet_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -223,6 +223,11 @@ void draw_dijet_fd()
 	hs->GetYaxis()->SetTitleOffset(1.2);
 	hs->GetXaxis()->SetTitleSize(0.05);
 	hs->GetXaxis()->SetTitleOffset(1);
+	hs->SetMaximum(0.95);
+
+	TLegend *sample = tdrLeg(0.691275,0.210801,0.724832,0.301394); 
+	sample->SetHeader("dijet sample");
+	sample->Draw();
 
 	TH1D* mid = new TH1D("line","line",ptBins,ptRange);
 	mid->Add(d55);
