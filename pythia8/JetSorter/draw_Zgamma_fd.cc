@@ -21,7 +21,7 @@ void draw_Zgamma_fd()
     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000};
 
 	TDirectory *curdir = gDirectory;
-	TFile *f = new TFile("30000Zjet_feynman.root","READ");
+	TFile *f = new TFile("1000000Zjet_massive_feynman.root","READ");
 	assert(f && !f->IsZombie());
 	TTree *tree = (TTree*)f->Get("Events");
 	unsigned int N = (unsigned int)tree->GetEntries(); 
@@ -123,6 +123,7 @@ void draw_Zgamma_fd()
 
 	curdir->cd();
 	THStack *hs  = new THStack("hs","Feynman diagrams for Z+jet event");
+	TCanvas *c1 = tdrCanvas("c1",h,2,0,kSquare);
 
 	for(unsigned int a = 0; a < all.size(); ++a) 
 	{
@@ -146,8 +147,15 @@ void draw_Zgamma_fd()
 	hs->GetXaxis()->SetMoreLogLabels(kTRUE);
 	hs->GetXaxis()->SetTitle("p_{T} (GeV)");
 	hs->GetYaxis()->SetTitle("Diagram contribution");
+	hs->SetMaximum(0.95);
+	hs->GetYaxis()->SetTitleSize(0.05);
+	hs->GetYaxis()->SetTitleOffset(1.2);
+	hs->GetXaxis()->SetTitleSize(0.05);
+	hs->GetXaxis()->SetTitleOffset(1);
 
-
+	TLegend *sample = tdrLeg(0.675-0.05,0.50,0.775-0.05,0.505); 
+	sample->SetHeader("#gamma+jet sample");
+	sample->Draw();
 	TLegend *leg = tdrLeg(0.5,0.2,0.275,0.40);		
 	
 	// leg->AddEntry(d47,"q#bar{q}#rightarrowZg","f");
